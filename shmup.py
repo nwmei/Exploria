@@ -23,40 +23,49 @@ class Player(pygame.sprite.Sprite):
     """
     sprite for player
     """
-    def __init__(self,file):
+    def __init__(self):
+        self.height = 40
         pygame.sprite.Sprite.__init__(self)
-        self.file = file
-        self.image = pygame.image.load(os.path.join(img_folder, self.file)).convert()
-        self.image.set_colorkey(BLACK)
+        self.image = pygame.Surface((50,self.height))
+        self.image.fill(GREEN)
         self.rect = self.image.get_rect()
-        self.rect.center = (random.randint(0,WIDTH), random.randint(0,HEIGHT))
-        self.xdirection = 1
-        self.ydirection = 1
+        self.rect.centerx = WIDTH/2
+        self.rect.bottom = HEIGHT - 10
+        self.speedx = 0
+        self.speedy = 0
 
     def update(self):
+        self.speedx = 0
+        self.speedy = 0
+        keystate = pygame.key.get_pressed()
+        if keystate[pygame.K_LEFT]:
+            self.speedx = -5
+        elif keystate[pygame.K_RIGHT]:
+            self.speedx = 5
+        elif keystate[pygame.K_UP]:
+            self.speedy = -5
+        elif keystate[pygame.K_DOWN]:
+            self.speedy = 5
+        self.rect.x += self.speedx
+        self.rect.y += self.speedy
+        #walls
         if self.rect.right > WIDTH:
-            self.xdirection = random.randint(-5,-1)
+            self.rect.right = WIDTH
         elif self.rect.left < 0:
-            self.xdirection = random.randint(1,5)
-        elif self.rect.y > HEIGHT:
-            self.ydirection = random.randint(-5,-1)
+            self.rect.left = 0
         elif self.rect.y < 0:
-            self.ydirection = random.randint(1,5)
-        speed = 6
-        self.rect.x += self.xdirection * speed
-        self.rect.y += self.ydirection * speed
+            self.rect.y = 0
 
 #create the window
 pygame.init()
 pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
-pygame.display.set_caption("Exploria Game")
+pygame.display.set_caption("Shmup Game")
 clock = pygame.time.Clock()
 
 all_sprites = pygame.sprite.Group()
-player = Player("peter.jpeg")
-cop = Player("copcar.png")
-all_sprites.add(player,cop)
+player = Player()
+all_sprites.add(player)
 
 #Game Loop
 running = True
