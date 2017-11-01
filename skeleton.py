@@ -1,5 +1,7 @@
 import pygame
 import random
+import os
+
 
 WIDTH = 800
 HEIGHT = 600
@@ -12,32 +14,35 @@ RED = (255,0,0)
 GREEN = (0,255,0)
 BLUE = (0,0,255)
 
+#set up assets
+game_folder = os.path.dirname(__file__)
+img_folder = os.path.join(game_folder, "img")
+
+
 class Player(pygame.sprite.Sprite):
     """
     sprite for player
     """
-    def __init__(self):
+    def __init__(self,file):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((50,50))
-        self.image.fill(GREEN)
+        self.file = file
+        self.image = pygame.image.load(os.path.join(img_folder, self.file)).convert()
+        self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
-        self.rect.center = (WIDTH/2, HEIGHT/2)
+        self.rect.center = (random.randint(0,WIDTH), random.randint(0,HEIGHT))
         self.xdirection = 1
         self.ydirection = 1
 
     def update(self):
         if self.rect.right > WIDTH:
-            self.xdirection = -1
-            self.image.fill(BLUE)
+            self.xdirection = random.randint(-5,-1)
         elif self.rect.left < 0:
-            self.xdirection = 1
-            self.image.fill(WHITE)
+            self.xdirection = random.randint(1,5)
         elif self.rect.y > HEIGHT:
-            self.ydirection = -1
-            self.image.fill(RED)
+            self.ydirection = random.randint(-5,-1)
         elif self.rect.y < 0:
-            self.ydirection = 1
-        speed = 5
+            self.ydirection = random.randint(1,5)
+        speed = 6
         self.rect.x += self.xdirection * speed
         self.rect.y += self.ydirection * speed
 
@@ -45,12 +50,13 @@ class Player(pygame.sprite.Sprite):
 pygame.init()
 pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
-pygame.display.set_caption("Exploria")
+pygame.display.set_caption("Exploria Game")
 clock = pygame.time.Clock()
 
 all_sprites = pygame.sprite.Group()
-player = Player()
-all_sprites.add(player)
+player = Player("peter.jpeg")
+cop = Player("copcar.png")
+all_sprites.add(player,cop)
 
 #Game Loop
 running = True
