@@ -49,14 +49,15 @@ class Player(pygame.sprite.Sprite):
         self.speedx = 0
         self.speedy = 0
         keystate = pygame.key.get_pressed()
-        if keystate[pygame.K_LEFT]:
-            self.speedx = -5
-        elif keystate[pygame.K_RIGHT]:
-            self.speedx = 5
-        elif keystate[pygame.K_UP]:
-            self.speedy = -5
-        elif keystate[pygame.K_DOWN]:
-            self.speedy = 5
+        if keystate[pygame.K_a]:
+            self.speedx = -3
+        if keystate[pygame.K_d]:
+            self.speedx = 3
+        if keystate[pygame.K_w]:
+            self.speedy = -3
+        if keystate[pygame.K_s]:
+            self.speedy = 3
+
         self.rect.x += self.speedx
         self.rect.y += self.speedy
         #walls
@@ -179,9 +180,10 @@ while running:
     #update
     all_sprites.update()
     #check if there is collision
-    hits = pygame.sprite.spritecollide(player, mobs, False, pygame.sprite.collide_circle)
+    hits = pygame.sprite.spritecollide(player, mobs, True, pygame.sprite.collide_circle)
     if hits:
-        player.health -= 1
+        player.health -= 15
+        player.rect.y += 40
         if player.health == 0:
             running = False
     shots = pygame.sprite.groupcollide(bullets, mobs, True, True)
@@ -193,9 +195,10 @@ while running:
         all_sprites.add(mob)
 
     #draw
-    screen.fill(BLACK)
+    screen.fill(BLUE)
     all_sprites.draw(screen)
-    draw_text(screen, 'score: ' + str(score), 18, WIDTH/2, 10)
+    score_and_health = 'score: ' + str(score) + '  ' + 'health: ' + str(player.health)
+    draw_text(screen,score_and_health, 18, WIDTH/2, 10)
 
     pygame.display.flip()
 
