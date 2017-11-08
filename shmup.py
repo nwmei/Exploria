@@ -18,6 +18,7 @@ YELLOW = (255,255,0)
 #set up assets
 game_folder = os.path.dirname(__file__)
 img_folder = os.path.join(game_folder, "img")
+snd_folder = os.path.join(game_folder, "snd")#.replace('\\', '/')
 
 font_name = pygame.font.match_font('arial')
 def draw_text(surf, text, size, x, y):
@@ -69,6 +70,7 @@ class Player(pygame.sprite.Sprite):
             self.rect.bottom = HEIGHT
 
     def shoot(self):
+        laser_snd.play()
         bullet = Bullet(self.rect.centerx, self.rect.top)
         all_sprites.add(bullet)
         bullets.add(bullet)
@@ -138,6 +140,12 @@ laser_img = pygame.image.load(path.join(img_folder, "laser.png"))
 player_img = pygame.image.load(path.join(img_folder, "ship1.png"))
 meteor_img = pygame.image.load(path.join(img_folder, "meteor.png"))
 
+#load sounds
+laser_snd = pygame.mixer.Sound(path.join(snd_folder, "laser.wav"))
+explosion_snd = pygame.mixer.Sound(path.join(snd_folder, "explosion.wav"))
+pygame.mixer.music.load(path.join(snd_folder, 'space_music.mp3'))
+pygame.mixer.music.set_volume(0.4)
+
 all_sprites = pygame.sprite.Group()
 mobs = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
@@ -156,6 +164,7 @@ for star_count in range(50):
 
 #Game Loop
 score = 0
+pygame.mixer.music.play(loops=-1)
 running = True
 while running:
     clock.tick(FPS)
@@ -177,6 +186,7 @@ while running:
             running = False
     shots = pygame.sprite.groupcollide(bullets, mobs, True, True)
     for shot in shots:
+        explosion_snd.play()
         score += 1
         mob = Mob()
         mobs.add(mob)
