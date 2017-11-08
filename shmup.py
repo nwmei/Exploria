@@ -19,6 +19,13 @@ YELLOW = (255,255,0)
 game_folder = os.path.dirname(__file__)
 img_folder = os.path.join(game_folder, "img")
 
+font_name = pygame.font.match_font('arial')
+def draw_text(surf, text, size, x, y):
+    font = pygame.font.Font(font_name, size)
+    text_surface = font.render(text, True, WHITE)
+    text_rect = text_surface.get_rect()
+    text_rect.midtop = (x,y)
+    surf.blit(text_surface, text_rect)
 
 class Player(pygame.sprite.Sprite):
     """
@@ -116,7 +123,7 @@ class Bullet(pygame.sprite.Sprite):
     def update(self):
         self.rect.y += self.speedy
         #delete if goes off screen
-        if (self.rect.bottom < 0):
+        if self.rect.bottom < 0:
             self.kill()
 
 #create the window
@@ -148,6 +155,7 @@ for star_count in range(50):
     all_sprites.add(star)
 
 #Game Loop
+score = 0
 running = True
 while running:
     clock.tick(FPS)
@@ -169,6 +177,7 @@ while running:
             running = False
     shots = pygame.sprite.groupcollide(bullets, mobs, True, True)
     for shot in shots:
+        score += 1
         mob = Mob()
         mobs.add(mob)
         all_sprites.add(mob)
@@ -176,6 +185,7 @@ while running:
     #draw
     screen.fill(BLACK)
     all_sprites.draw(screen)
+    draw_text(screen, 'score: ' + str(score), 18, WIDTH/2, 10)
 
     pygame.display.flip()
 
