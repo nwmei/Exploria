@@ -184,7 +184,7 @@ while running:
     if hits:
         player.health -= 15
         player.rect.y += 40
-        if player.health == 0:
+        if player.health <= 0:
             running = False
     shots = pygame.sprite.groupcollide(bullets, mobs, True, True)
     for shot in shots:
