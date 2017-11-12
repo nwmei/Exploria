@@ -28,6 +28,22 @@ def draw_text(surf, text, size, x, y):
     text_rect.midtop = (x,y)
     surf.blit(text_surface, text_rect)
 
+def newmob():
+    mob = Mob()
+    mobs.add(mob)
+    all_sprites.add(mob)
+
+def draw_shield_bar(surf, x, y, percentage):
+    if percentage < 0:
+        percentage = 0
+    BAR_LENGTH = 100
+    BAR_HEIGHT = 10
+    fill = (percentage/100) * BAR_LENGTH
+    outline_rect = pygame.Rect(x, y, BAR_LENGTH, BAR_HEIGHT)
+    fill_rect = pygame.Rect(x, y, fill, BAR_HEIGHT)
+    pygame.draw.rect(surf, GREEN, fill_rect)
+    pygame.draw.rect(surf,WHITE, outline_rect, 2)
+
 class Player(pygame.sprite.Sprite):
     """
     sprite for player
@@ -43,20 +59,24 @@ class Player(pygame.sprite.Sprite):
         self.rect.bottom = HEIGHT - 10
         self.speedx = 0
         self.speedy = 0
-        self.health = 80
+        self.shield = 100
+        self.shoot_delay = 250
+        self.last_shot = pygame.time.get_ticks()
 
     def update(self):
         self.speedx = 0
         self.speedy = 0
         keystate = pygame.key.get_pressed()
-        if keystate[pygame.K_a]:
+        if keystate[pygame.K_LEFT]:
             self.speedx = -3
-        if keystate[pygame.K_d]:
+        if keystate[pygame.K_RIGHT]:
             self.speedx = 3
-        if keystate[pygame.K_w]:
+        if keystate[pygame.K_UP]:
             self.speedy = -3
-        if keystate[pygame.K_s]:
+        if keystate[pygame.K_DOWN]:
             self.speedy = 3
+        if keystate[pygame.K_SPACE]:
+            self.shoot()
 
         self.rect.x += self.speedx
         self.rect.y += self.speedy
@@ -71,10 +91,13 @@ class Player(pygame.sprite.Sprite):
             self.rect.bottom = HEIGHT
 
     def shoot(self):
-        laser_snd.play()
-        bullet = Bullet(self.rect.centerx, self.rect.top)
-        all_sprites.add(bullet)
-        bullets.add(bullet)
+        now = pygame.time.get_ticks()
+        if now - self.last_shot > self.shoot_delay:
+            self.last_shot = now
+            laser_snd.play()
+            bullet = Bullet(self.rect.centerx, self.rect.top)
+            all_sprites.add(bullet)
+            bullets.add(bullet)
 
 class Mob(pygame.sprite.Sprite):
     def __init__(self):
@@ -101,7 +124,7 @@ class Mob(pygame.sprite.Sprite):
 class PassingStars(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((1,40))
+        self.image = pygame.Surface((1,20))
         self.image.fill(WHITE)
         self.rect = self.image.get_rect()
         self.rect.x = random.randrange(WIDTH)
@@ -129,6 +152,30 @@ class Bullet(pygame.sprite.Sprite):
         if self.rect.bottom < 0:
             self.kill()
 
+class Explosion(pygame.sprite.Sprite):
+    def __init__(self, center, size):
+        pygame.sprite.Sprite.__init__(self)
+        self.size = size
+        self.image = explosion_anim[self.size][0]
+        self.rect = self.image.get_rect()
+        self.rect.center = center
+        self.frame = 0
+        self.last_update = pygame.time.get_ticks()
+        self.frame_rate = 50
+
+    def update(self):
+        now = pygame.time.get_ticks()
+        if now - self.last_update > self.frame_rate:
+            self.last_update = now
+            self.frame += 1
+            if self.frame == len(explosion_anim[self.size]):
+                self.kill()
+            else:
+                center = self.rect.center
+                self.image = explosion_anim[self.size][self.frame]
+                self.rect = self.image.get_rect()
+                self.rect.center = center
+
 #create the window
 pygame.init()
 pygame.mixer.init()
@@ -140,9 +187,21 @@ clock = pygame.time.Clock()
 laser_img = pygame.image.load(path.join(img_folder, "laser.png"))
 player_img = pygame.image.load(path.join(img_folder, "ship1.png"))
 meteor_img = pygame.image.load(path.join(img_folder, "meteor.png"))
+explosion_anim = {}
+explosion_anim['lg'] = []
+explosion_anim['sm'] = []
+for i in range(7):
+    filename = 'regularExplosion0{}.png'.format(i)
+    img = pygame.image.load(path.join(img_folder, filename))
+    img.set_colorkey(BLACK)
+    img_lg = pygame.transform.scale(img, (75,75))
+    explosion_anim['lg'].append(img_lg)
+    img_sm = pygame.transform.scale(img, (32,32))
+    explosion_anim['sm'].append(img_sm)
 
 #load sounds
 laser_snd = pygame.mixer.Sound(path.join(snd_folder, "laser.wav"))
+laser_snd.set_volume(0.5)
 explosion_snd = pygame.mixer.Sound(path.join(snd_folder, "explosion.wav"))
 pygame.mixer.music.load(path.join(snd_folder, 'space_music.mp3'))
 pygame.mixer.music.set_volume(0.4)
@@ -154,9 +213,7 @@ player = Player()
 all_sprites.add(player)
 #create new mobs and aadd to all_sprites and mobs
 for i in range(8):
-    m = Mob()
-    all_sprites.add(m)
-    mobs.add(m)
+    newmob()
 
 #create the passing stars
 for star_count in range(50):
@@ -173,33 +230,33 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                player.shoot()
 
     #update
     all_sprites.update()
     #check if there is collision
     hits = pygame.sprite.spritecollide(player, mobs, True, pygame.sprite.collide_circle)
-    if hits:
-        player.health -= 15
+    for hit in hits:
+        expl = Explosion(player.rect.center, 'sm')
+        all_sprites.add(expl)
+        player.shield -= random.randrange(15, 25)
         player.rect.y += 40
-        if player.health <= 0:
+        newmob()
+        if player.shield <= 0:
             running = False
     shots = pygame.sprite.groupcollide(bullets, mobs, True, True)
     for shot in shots:
         explosion_snd.play()
+        expl = Explosion(shot.rect.center, random.choice(['lg','sm']))
+        all_sprites.add(expl)
         score += 1
-        mob = Mob()
-        mobs.add(mob)
-        all_sprites.add(mob)
+        newmob()
 
     #draw
     screen.fill(BLUE)
     all_sprites.draw(screen)
-    score_and_health = 'score: ' + str(score) + '  ' + 'health: ' + str(player.health)
-    draw_text(screen,score_and_health, 18, WIDTH/2, 10)
-
+    score_and_shield = 'score: ' + str(score) + '  ' + 'health: ' + str(player.shield)
+    draw_text(screen,score_and_shield, 18, WIDTH/2, 10)
+    draw_shield_bar(screen, 5, 5, player.shield)
     pygame.display.flip()
 
 pygame.quit()
