@@ -18,7 +18,7 @@ YELLOW = (255,255,0)
 #set up assets
 game_folder = os.path.dirname(__file__)
 img_folder = os.path.join(game_folder, "img")
-snd_folder = os.path.join(game_folder, "snd")#.replace('\\', '/')
+snd_folder = os.path.join(game_folder, "snd")
 
 font_name = pygame.font.match_font('arial')
 def draw_text(surf, text, size, x, y):
@@ -27,6 +27,22 @@ def draw_text(surf, text, size, x, y):
     text_rect = text_surface.get_rect()
     text_rect.midtop = (x,y)
     surf.blit(text_surface, text_rect)
+
+def draw_GO_screen():
+    screen.blit(background, background_rect)
+    draw_text(screen, "SHMUP!", 64, WIDTH/2, HEIGHT/4)
+    draw_text(screen, "Arrow keys move, Space to fire", 22, WIDTH/2, HEIGHT/2)
+    draw_text(screen, 'Press SPACEBAR to begin', 18, WIDTH/2, HEIGHT*3/4)
+    pygame.display.flip()
+    waiting = True
+    while waiting:
+        clock.tick(FPS)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if pygame.key.get_pressed()[pygame.K_SPACE]:
+                waiting = False
+
 
 def newmob():
     mob = Mob()
@@ -118,13 +134,13 @@ class Mob(pygame.sprite.Sprite):
         if ((self.rect.top > HEIGHT) or (self.rect.left < -30) or (self.rect.right > WIDTH+30)) :
             self.rect.x = random.randrange(WIDTH - self.rect.width)
             self.rect.y = random.randrange(-100, -40)
-            self.speedy = random.randrange(5)
+            self.speedy = random.randrange(2,5)
             self.speedx = random.randrange(-2,2)
 
 class PassingStars(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((1,20))
+        self.image = pygame.Surface((1,3))
         self.image.fill(WHITE)
         self.rect = self.image.get_rect()
         self.rect.x = random.randrange(WIDTH)
@@ -184,6 +200,9 @@ pygame.display.set_caption("Shmup Game")
 clock = pygame.time.Clock()
 
 #load graphics
+background = pygame.image.load(path.join(img_folder, "background.png")).convert()
+background_rect = background.get_rect()
+
 laser_img = pygame.image.load(path.join(img_folder, "laser.png"))
 player_img = pygame.image.load(path.join(img_folder, "ship1.png"))
 meteor_img = pygame.image.load(path.join(img_folder, "meteor.png"))
@@ -206,25 +225,28 @@ explosion_snd = pygame.mixer.Sound(path.join(snd_folder, "explosion.wav"))
 pygame.mixer.music.load(path.join(snd_folder, 'space_music.mp3'))
 pygame.mixer.music.set_volume(0.4)
 
-all_sprites = pygame.sprite.Group()
-mobs = pygame.sprite.Group()
-bullets = pygame.sprite.Group()
-player = Player()
-all_sprites.add(player)
-#create new mobs and aadd to all_sprites and mobs
-for i in range(8):
-    newmob()
-
-#create the passing stars
-for star_count in range(50):
-    star = PassingStars()
-    all_sprites.add(star)
 
 #Game Loop
 score = 0
 pygame.mixer.music.play(loops=-1)
+game_over = True
 running = True
 while running:
+    if game_over:
+        draw_GO_screen()
+        game_over = False
+        all_sprites = pygame.sprite.Group()
+        mobs = pygame.sprite.Group()
+        bullets = pygame.sprite.Group()
+        player = Player()
+        all_sprites.add(player)
+        # create new mobs and aadd to all_sprites and mobs
+        for i in range(8):
+            newmob()
+        # create the passing stars
+        for star_count in range(20):
+            star = PassingStars()
+            all_sprites.add(star)
     clock.tick(FPS)
     #Process input (events)
     for event in pygame.event.get():
@@ -242,7 +264,7 @@ while running:
         player.rect.y += 40
         newmob()
         if player.shield <= 0:
-            running = False
+            game_over = True
     shots = pygame.sprite.groupcollide(bullets, mobs, True, True)
     for shot in shots:
         explosion_snd.play()
@@ -253,6 +275,7 @@ while running:
 
     #draw
     screen.fill(BLUE)
+    screen.blit(background, background_rect)
     all_sprites.draw(screen)
     score_and_shield = 'score: ' + str(score) + '  ' + 'health: ' + str(player.shield)
     draw_text(screen,score_and_shield, 18, WIDTH/2, 10)
