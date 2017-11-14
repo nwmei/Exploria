@@ -30,7 +30,7 @@ def draw_text(surf, text, size, x, y):
 
 def draw_GO_screen():
     screen.blit(background, background_rect)
-    draw_text(screen, "SHMUP!", 64, WIDTH/2, HEIGHT/4)
+    draw_text(screen, "Oceanography Game", 47, WIDTH/2, HEIGHT/4)
     draw_text(screen, "Arrow keys move, Space to fire", 22, WIDTH/2, HEIGHT/2)
     draw_text(screen, 'Press SPACEBAR to begin', 18, WIDTH/2, HEIGHT*3/4)
     pygame.display.flip()
@@ -196,11 +196,11 @@ class Explosion(pygame.sprite.Sprite):
 pygame.init()
 pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
-pygame.display.set_caption("Shmup Game")
+pygame.display.set_caption("Oceanagraphy Game")
 clock = pygame.time.Clock()
 
 #load graphics
-background = pygame.image.load(path.join(img_folder, "background.png")).convert()
+background = pygame.image.load(path.join(img_folder, "island.xcf")).convert()
 background_rect = background.get_rect()
 
 laser_img = pygame.image.load(path.join(img_folder, "laser.png"))
