@@ -7,6 +7,9 @@ WIDTH = 480
 HEIGHT = 600
 FPS = 60
 
+#spritesheets
+POLLUTION_SPRITESHEET = 'pollution.png'
+
 #define common colors5
 BLACK = (0,0,0)
 WHITE = (255,255,255)
@@ -59,6 +62,17 @@ def draw_shield_bar(surf, x, y, percentage):
     fill_rect = pygame.Rect(x, y, fill, BAR_HEIGHT)
     pygame.draw.rect(surf, GREEN, fill_rect)
     pygame.draw.rect(surf,WHITE, outline_rect, 2)
+
+class Spritesheet:
+    def __init__(self,filename):
+        self.spritesheet = pygame.image.load(path.join(img_folder, filename))
+
+    def get_image(self, x, y, width, height):
+        # extract image out of spritesheet
+        image = pygame.Surface((width, height))
+        image.blit(self.spritesheet, (0,0), (x, y, width, height))
+        return image
+
 
 class Player(pygame.sprite.Sprite):
     """
@@ -115,17 +129,17 @@ class Player(pygame.sprite.Sprite):
             all_sprites.add(bullet)
             bullets.add(bullet)
 
-class Mob(pygame.sprite.Sprite):
+class Fish(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = meteor_img
+        self.image = random.choice(fish_image_list)
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
         self.radius = int(self.rect.width*0.9/2)
         self.rect.x = random.randrange(WIDTH - self.rect.width)
         self.rect.y = random.randrange(-100, -40)
-        self.speedy = random.randrange(5)
-        self.speedx = random.randrange(-2, 2)
+        self.speedy = random.randrange(1, 2)
+        self.speedx = random.randrange(-1, 1)
 
     def update(self):
         self.rect.y += self.speedy
@@ -134,8 +148,30 @@ class Mob(pygame.sprite.Sprite):
         if ((self.rect.top > HEIGHT) or (self.rect.left < -30) or (self.rect.right > WIDTH+30)) :
             self.rect.x = random.randrange(WIDTH - self.rect.width)
             self.rect.y = random.randrange(-100, -40)
-            self.speedy = random.randrange(2,5)
-            self.speedx = random.randrange(-2,2)
+            self.speedy = random.randrange(1, 2)
+            self.speedx = random.randrange(-2, 2)
+
+class Mob(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = random.choice(pollution_image_list)
+        self.image.set_colorkey(BLACK)
+        self.rect = self.image.get_rect()
+        self.radius = int(self.rect.width*0.9/2)
+        self.rect.x = random.randrange(WIDTH - self.rect.width)
+        self.rect.y = random.randrange(-100, -40)
+        self.speedy = random.randrange(1, 2)
+        self.speedx = random.randrange(-1, 1)
+
+    def update(self):
+        self.rect.y += self.speedy
+        self.rect.x += self.speedx
+        #respawn
+        if ((self.rect.top > HEIGHT) or (self.rect.left < -30) or (self.rect.right > WIDTH+30)) :
+            self.rect.x = random.randrange(WIDTH - self.rect.width)
+            self.rect.y = random.randrange(-100, -40)
+            self.speedy = random.randrange(1, 2)
+            self.speedx = random.randrange(-2, 2)
 
 class PassingStars(pygame.sprite.Sprite):
     def __init__(self):
@@ -160,7 +196,7 @@ class Bullet(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.bottom = y
         self.rect.centerx = x
-        self.speedy = -10
+        self.speedy = -6
 
     def update(self):
         self.rect.y += self.speedy
@@ -195,7 +231,7 @@ class Explosion(pygame.sprite.Sprite):
 #create the window
 pygame.init()
 pygame.mixer.init()
-screen = pygame.display.set_mode((WIDTH,HEIGHT))
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Oceanagraphy Game")
 clock = pygame.time.Clock()
 
@@ -206,6 +242,28 @@ background_rect = background.get_rect()
 laser_img = pygame.image.load(path.join(img_folder, "laser.png"))
 player_img = pygame.image.load(path.join(img_folder, "ship1.png"))
 meteor_img = pygame.image.load(path.join(img_folder, "meteor.png"))
+
+#pollution_sheet = pygame.image.load(path.join(img_folder, POLLUTION_SPRITESHEET))
+pollution_sheet = Spritesheet(POLLUTION_SPRITESHEET)
+pollution_image_list = []
+pollution_image_list.append(pollution_sheet.get_image(19, 7, 39, 55))
+pollution_image_list.append(pollution_sheet.get_image(243, 12, 17, 50))
+pollution_image_list.append(pollution_sheet.get_image(287, 13, 16, 49))
+pollution_image_list.append(pollution_sheet.get_image(98, 14, 51, 48))
+pollution_image_list.append(pollution_sheet.get_image(206, 16, 35, 46))
+pollution_image_list.append(pollution_sheet.get_image(2, 17, 15, 45))
+pollution_image_list.append(pollution_sheet.get_image(373, 17, 28, 45))
+pollution_image_list.append(pollution_sheet.get_image(60, 18, 36, 44))
+pollution_image_list.append(pollution_sheet.get_image(330, 22, 21, 40))
+pollution_image_list.append(pollution_sheet.get_image(496, 22, 17, 40))
+pollution_image_list.append(pollution_sheet.get_image(262, 27, 23, 35))
+pollution_image_list.append(pollution_sheet.get_image(353, 28, 18, 34))
+pollution_image_list.append(pollution_sheet.get_image(305, 32, 23, 30))
+pollution_image_list.append(pollution_sheet.get_image(403, 32, 60, 30))
+pollution_image_list.append(pollution_sheet.get_image(x=151, y=34, width=53, height=28))
+pollution_image_list.append(pollution_sheet.get_image(465, 36, 29, 26))
+# new mob class, mob image not defined
+
 explosion_anim = {}
 explosion_anim['lg'] = []
 explosion_anim['sm'] = []
@@ -213,9 +271,9 @@ for i in range(7):
     filename = 'regularExplosion0{}.png'.format(i)
     img = pygame.image.load(path.join(img_folder, filename))
     img.set_colorkey(BLACK)
-    img_lg = pygame.transform.scale(img, (75,75))
+    img_lg = pygame.transform.scale(img, (75, 75))
     explosion_anim['lg'].append(img_lg)
-    img_sm = pygame.transform.scale(img, (32,32))
+    img_sm = pygame.transform.scale(img, (32, 32))
     explosion_anim['sm'].append(img_sm)
 
 #load sounds
