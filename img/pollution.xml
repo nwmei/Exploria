@@ -1,0 +1,18 @@
+<TextureAtlas imagepath="pollution.png">
+    <SubTexture name="sprite1" x="19" y="7" width="39" height="55"/>
+    <SubTexture name="sprite2" x="243" y="12" width="17" height="50"/>
+    <SubTexture name="sprite3" x="287" y="13" width="16" height="49"/>
+    <SubTexture name="sprite4" x="98" y="14" width="51" height="48"/>
+    <SubTexture name="sprite5" x="206" y="16" width="35" height="46"/>
+    <SubTexture name="sprite6" x="2" y="17" width="15" height="45"/>
+    <SubTexture name="sprite7" x="373" y="17" width="28" height="45"/>
+    <SubTexture name="sprite8" x="60" y="18" width="36" height="44"/>
+    <SubTexture name="sprite9" x="330" y="22" width="21" height="40"/>
+    <SubTexture name="sprite10" x="496" y="22" width="17" height="40"/>
+    <SubTexture name="sprite11" x="262" y="27" width="23" height="35"/>
+    <SubTexture name="sprite12" x="353" y="28" width="18" height="34"/>
+    <SubTexture name="sprite13" x="305" y="32" width="23" height="30"/>
+    <SubTexture name="sprite14" x="403" y="32" width="60" height="30"/>
+    <SubTexture name="sprite15" x="151" y="34" width="53" height="28"/>
+    <SubTexture name="sprite16" x="465" y="36" width="29" height="26"/>
+</TextureAtlas>
