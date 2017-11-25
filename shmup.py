@@ -3,6 +3,9 @@ import random
 import os
 from os import path
 
+#Oceanography Pollution Game, a version of Shmup
+#BU ES144
+
 WIDTH = 600 #was 480
 HEIGHT = 700 #was 600
 FPS = 60
@@ -332,7 +335,7 @@ laser_snd = pygame.mixer.Sound(path.join(snd_folder, "laser.wav"))
 laser_snd.set_volume(0.5)
 explosion_snd = pygame.mixer.Sound(path.join(snd_folder, "explosion.wav"))
 pygame.mixer.music.load(path.join(snd_folder, 'space_music.mp3'))
-pygame.mixer.music.set_volume(0.4)
+pygame.mixer.music.set_volume(0.01)
 
 
 #Game Loop
@@ -355,10 +358,6 @@ while running:
         # create new mobs and add to all_sprites and mobs
         for i in range(5):
             newmob()
-        # create the passing stars
-        #for star_count in range(20):
-         #   star = PassingStars()
-          #  all_sprites.add(star)
     clock.tick(FPS)
     #Process input (events)
     for event in pygame.event.get():
