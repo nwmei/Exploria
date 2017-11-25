@@ -24,18 +24,26 @@ img_folder = os.path.join(game_folder, "img")
 snd_folder = os.path.join(game_folder, "snd")
 
 font_name = pygame.font.match_font('arial')
-def draw_text(surf, text, size, x, y):
+def draw_text(surf, text, size, x, y, color):
     font = pygame.font.Font(font_name, size)
-    text_surface = font.render(text, True, WHITE)
+    text_surface = font.render(text, True, color)
     text_rect = text_surface.get_rect()
     text_rect.midtop = (x,y)
     surf.blit(text_surface, text_rect)
 
 def draw_GO_screen():
+    fact_list = []
+    fact_list.append("Toxic chemicals will negatively impact plankton")
+    fact_list.append("Pesticides get into the ocean, the entire food web can be effected")
+    fact_list.append("Other causes of marine pollution: wind-blown debris, dust")
+    fact_list.append("80% of marine pollution comes from land")
     screen.blit(background, background_rect)
-    draw_text(screen, "Oceanography Game", 47, WIDTH/2, HEIGHT/4)
-    draw_text(screen, "Arrow keys move, Space to fire", 22, WIDTH/2, HEIGHT/2)
-    draw_text(screen, 'Press SPACEBAR to begin', 18, WIDTH/2, HEIGHT*3/4)
+    draw_text(screen, "Oceanography Game", 55, WIDTH/2, HEIGHT/4,WHITE)
+    draw_text(screen, "Arrow keys move, Space to fire", 22, WIDTH/2, HEIGHT/2,WHITE)
+    draw_text(screen, 'Press SPACEBAR to begin', 18, WIDTH/2, HEIGHT/2 + 30,WHITE)
+    draw_text(screen, 'You saved ' + str(global_fish_saved) + ' fish. Do better!', 18, WIDTH/2, HEIGHT/2 + 60 + 30,WHITE)
+    draw_text(screen, 'Fun Fact: ', 18, WIDTH/2, HEIGHT/2 + 200,BLACK)
+    draw_text(screen, random.choice(fact_list), 18, WIDTH / 2, HEIGHT / 2 + 230, BLACK)
     pygame.display.flip()
     waiting = True
     while waiting:
@@ -234,11 +242,33 @@ class Explosion(pygame.sprite.Sprite):
                 self.rect = self.image.get_rect()
                 self.rect.center = center
 
+class Blood(pygame.sprite.Sprite):
+    def __init__(self, center):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = blood_image_list[0]
+        self.rect = self.image.get_rect()
+        self.rect.center = center
+        self.frame = 0
+        self.last_update = pygame.time.get_ticks()
+        self.frame_rate = 50
+
+    def update(self):
+        now = pygame.time.get_ticks()
+        if now - self.last_update > self.frame_rate:
+            self.last_update = now
+            self.frame += 1
+            if self.frame == len(blood_image_list):
+                self.kill()
+            else:
+                center = self.rect.center
+                self.image = blood_image_list[self.frame]
+                self.rect = self.image.get_rect()
+                self.rect.center = center
 #create the window
 pygame.init()
 pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Oceanagraphy Game")
+pygame.display.set_caption("Oceanagraphy Pollution Game")
 clock = pygame.time.Clock()
 
 #load graphics
@@ -276,6 +306,15 @@ fish_image_list.append(fish_sheet.get_image(107, 1, 21, 31))
 fish_image_list.append(pygame.transform.rotate(fish_sheet.get_image(35, 224, 26, 32), 180))
 fish_image_list.append(pygame.transform.rotate(fish_sheet.get_image(198, 224, 18, 32), 180))
 
+blood_sheet = Spritesheet("blood.png")
+blood_image_list = []
+start = 0
+for x in range(15):
+    image = blood_sheet.get_image(start, 0, 480, 480)
+    image.set_colorkey(BLACK)
+    blood_image_list.append(pygame.transform.scale(image, (80, 80)))
+    start += 480
+
 explosion_anim = {}
 explosion_anim['lg'] = []
 explosion_anim['sm'] = []
@@ -302,6 +341,7 @@ fish_killed = 0
 pygame.mixer.music.play(loops=-1)
 game_over = True
 running = True
+global_fish_saved = 0
 while running:
     if game_over:
         draw_GO_screen()
@@ -346,15 +386,17 @@ while running:
         if random.choice([True, False, False]):
             newFish()
             player.fish_saved += 1
+            global_fish_saved += 1
         newmob()
 
     kills = pygame.sprite.groupcollide(bullets, all_fish, True, True) #if bullet and fish collide
     for kill in kills:
         explosion_snd.play()
-        expl = Explosion(kill.rect.center, random.choice(['lg', 'sm']))
-        all_sprites.add(expl)
+        blood = Blood(kill.rect.center)
+        all_sprites.add(blood)
         score -= 1
         player.fish_saved -= 1
+        global_fish_saved -= 1
         fish_killed += 1
 
 
@@ -363,7 +405,7 @@ while running:
     screen.blit(background, background_rect)
     all_sprites.draw(screen)
     top_text = 'health: ' + str(player.shield) + '   fish saved: ' + str(player.fish_saved) + '   fish killed:  = ' + str(fish_killed)
-    draw_text(screen,top_text, 22, WIDTH/2, 10)
+    draw_text(screen,top_text, 22, WIDTH/2, 10, BLACK)
     draw_shield_bar(screen, 5, 5, player.shield)
     pygame.display.flip()
 
