@@ -3,8 +3,8 @@ import random
 import os
 from os import path
 
-WIDTH = 480
-HEIGHT = 600
+WIDTH = 600 #was 480
+HEIGHT = 700 #was 600
 FPS = 60
 
 #spritesheets
@@ -52,6 +52,11 @@ def newmob():
     mobs.add(mob)
     all_sprites.add(mob)
 
+def newFish():
+    fish = Fish()
+    all_fish.add(fish)
+    all_sprites.add(fish)
+
 def draw_shield_bar(surf, x, y, percentage):
     if percentage < 0:
         percentage = 0
@@ -81,7 +86,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         self.height = 40
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale((player_img), (50,38))
+        self.image = pygame.transform.scale((player_img), (60,48))
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
         self.radius = 20
@@ -90,6 +95,7 @@ class Player(pygame.sprite.Sprite):
         self.speedx = 0
         self.speedy = 0
         self.shield = 100
+        self.fish_saved = 0
         self.shoot_delay = 250
         self.last_shot = pygame.time.get_ticks()
 
@@ -132,14 +138,14 @@ class Player(pygame.sprite.Sprite):
 class Fish(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = random.choice(fish_image_list)
+        self.image = pygame.transform.scale(random.choice(fish_image_list), (50, 70))
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
         self.radius = int(self.rect.width*0.9/2)
         self.rect.x = random.randrange(WIDTH - self.rect.width)
         self.rect.y = random.randrange(-100, -40)
-        self.speedy = random.randrange(1, 2)
-        self.speedx = random.randrange(-1, 1)
+        self.speedy = random.randrange(1, 4)
+        self.speedx = 0
 
     def update(self):
         self.rect.y += self.speedy
@@ -148,13 +154,13 @@ class Fish(pygame.sprite.Sprite):
         if ((self.rect.top > HEIGHT) or (self.rect.left < -30) or (self.rect.right > WIDTH+30)) :
             self.rect.x = random.randrange(WIDTH - self.rect.width)
             self.rect.y = random.randrange(-100, -40)
-            self.speedy = random.randrange(1, 2)
-            self.speedx = random.randrange(-2, 2)
+            self.speedy = random.randrange(1, 4)
+            self.speedx = 0
 
 class Mob(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = random.choice(pollution_image_list)
+        self.image = pygame.transform.scale((random.choice(pollution_image_list)), (25, 40))
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
         self.radius = int(self.rect.width*0.9/2)
@@ -243,7 +249,6 @@ laser_img = pygame.image.load(path.join(img_folder, "laser.png"))
 player_img = pygame.image.load(path.join(img_folder, "ship1.png"))
 meteor_img = pygame.image.load(path.join(img_folder, "meteor.png"))
 
-#pollution_sheet = pygame.image.load(path.join(img_folder, POLLUTION_SPRITESHEET))
 pollution_sheet = Spritesheet(POLLUTION_SPRITESHEET)
 pollution_image_list = []
 pollution_image_list.append(pollution_sheet.get_image(19, 7, 39, 55))
@@ -260,9 +265,16 @@ pollution_image_list.append(pollution_sheet.get_image(262, 27, 23, 35))
 pollution_image_list.append(pollution_sheet.get_image(353, 28, 18, 34))
 pollution_image_list.append(pollution_sheet.get_image(305, 32, 23, 30))
 pollution_image_list.append(pollution_sheet.get_image(403, 32, 60, 30))
-pollution_image_list.append(pollution_sheet.get_image(x=151, y=34, width=53, height=28))
+pollution_image_list.append(pollution_sheet.get_image(151, 34, 53, 28))
 pollution_image_list.append(pollution_sheet.get_image(465, 36, 29, 26))
-# new mob class, mob image not defined
+
+fish_sheet = Spritesheet("fish.png")
+fish_image_list = []
+fish_image_list.append(fish_sheet.get_image(9, 0, 18, 32))
+fish_image_list.append(fish_sheet.get_image(192, 0, 32, 32))
+fish_image_list.append(fish_sheet.get_image(107, 1, 21, 31))
+fish_image_list.append(pygame.transform.rotate(fish_sheet.get_image(35, 224, 26, 32), 180))
+fish_image_list.append(pygame.transform.rotate(fish_sheet.get_image(198, 224, 18, 32), 180))
 
 explosion_anim = {}
 explosion_anim['lg'] = []
@@ -286,6 +298,7 @@ pygame.mixer.music.set_volume(0.4)
 
 #Game Loop
 score = 0
+fish_killed = 0
 pygame.mixer.music.play(loops=-1)
 game_over = True
 running = True
@@ -295,16 +308,17 @@ while running:
         game_over = False
         all_sprites = pygame.sprite.Group()
         mobs = pygame.sprite.Group()
+        all_fish = pygame.sprite.Group()
         bullets = pygame.sprite.Group()
         player = Player()
         all_sprites.add(player)
-        # create new mobs and aadd to all_sprites and mobs
-        for i in range(8):
+        # create new mobs and add to all_sprites and mobs
+        for i in range(5):
             newmob()
         # create the passing stars
-        for star_count in range(20):
-            star = PassingStars()
-            all_sprites.add(star)
+        #for star_count in range(20):
+         #   star = PassingStars()
+          #  all_sprites.add(star)
     clock.tick(FPS)
     #Process input (events)
     for event in pygame.event.get():
@@ -314,7 +328,7 @@ while running:
     #update
     all_sprites.update()
     #check if there is collision
-    hits = pygame.sprite.spritecollide(player, mobs, True, pygame.sprite.collide_circle)
+    hits = pygame.sprite.spritecollide(player, mobs, True, pygame.sprite.collide_circle) #if player and mob collide
     for hit in hits:
         expl = Explosion(player.rect.center, 'sm')
         all_sprites.add(expl)
@@ -323,20 +337,33 @@ while running:
         newmob()
         if player.shield <= 0:
             game_over = True
-    shots = pygame.sprite.groupcollide(bullets, mobs, True, True)
+    shots = pygame.sprite.groupcollide(bullets, mobs, True, True) #if bullet and mob collide
     for shot in shots:
         explosion_snd.play()
-        expl = Explosion(shot.rect.center, random.choice(['lg','sm']))
+        expl = Explosion(shot.rect.center, random.choice(['lg', 'sm']))
         all_sprites.add(expl)
         score += 1
+        if random.choice([True, False, False]):
+            newFish()
+            player.fish_saved += 1
         newmob()
+
+    kills = pygame.sprite.groupcollide(bullets, all_fish, True, True) #if bullet and fish collide
+    for kill in kills:
+        explosion_snd.play()
+        expl = Explosion(kill.rect.center, random.choice(['lg', 'sm']))
+        all_sprites.add(expl)
+        score -= 1
+        player.fish_saved -= 1
+        fish_killed += 1
+
 
     #draw
     screen.fill(BLUE)
     screen.blit(background, background_rect)
     all_sprites.draw(screen)
-    score_and_shield = 'score: ' + str(score) + '  ' + 'health: ' + str(player.shield)
-    draw_text(screen,score_and_shield, 18, WIDTH/2, 10)
+    top_text = 'health: ' + str(player.shield) + '   fish saved: ' + str(player.fish_saved) + '   fish killed:  = ' + str(fish_killed)
+    draw_text(screen,top_text, 22, WIDTH/2, 10)
     draw_shield_bar(screen, 5, 5, player.shield)
     pygame.display.flip()
 
