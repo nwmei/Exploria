@@ -3,6 +3,7 @@ import random
 import os
 from os import path
 
+# Tutorial from: https://www.youtube.com/channel/UCNaPQ5uLX5iIEHUCLmfAgKg
 #Oceanography Pollution Game, a version of Shmup
 #BU ES144
 
