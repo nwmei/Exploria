@@ -3,6 +3,8 @@ import pygame as pg
 import random
 import os
 from settings import *
+from sprites import *
+
 
 class Game:
     def __init__(self):
@@ -17,7 +19,9 @@ class Game:
     
     def new(self):
         """start a new game"""
-        all_sprites = pygame.sprite.Group()
+        self.all_sprites = pg.sprite.Group()
+        self.player = Player()
+        self.all_sprites.add(self.player)
         self.run()
     
     def run(self):
@@ -36,10 +40,10 @@ class Game:
     def events(self):
         """game loop events"""
         for event in pg.event.get():
-        if event.type == pg.QUIT:
-            if self.playing:
-                self.playing = False
-            self.running = False
+            if event.type == pg.QUIT:
+                if self.playing:
+                    self.playing = False
+                self.running = False
     
     def draw(self):
         """game loop draw"""
