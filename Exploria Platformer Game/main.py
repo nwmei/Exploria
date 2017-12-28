@@ -15,13 +15,19 @@ class Game:
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.running = True
-        pass
-    
+
     def new(self):
         """start a new game"""
         self.all_sprites = pg.sprite.Group()
+        self.platforms = pg.sprite.Group()
         self.player = Player()
         self.all_sprites.add(self.player)
+        platform1 = Platform(0, HEIGHT-40, WIDTH, 40)
+        self.all_sprites.add(platform1)
+        self.platforms.add(platform1)
+        platform2 = Platform(WIDTH/2-50, HEIGHT*3/4, 100, 20)
+        self.all_sprites.add(platform2)
+        self.platforms.add(platform2)
         self.run()
     
     def run(self):
@@ -36,6 +42,10 @@ class Game:
     def update(self):
         """game loop update"""
         self.all_sprites.update()
+        hits = pg.sprite.spritecollide(self.player, self.platforms, False)
+        if hits:
+            self.player.pos.y = hits[0].rect.top+1
+            self.player.vel.y = 0
     
     def events(self):
         """game loop events"""
