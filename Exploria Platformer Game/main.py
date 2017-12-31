@@ -16,18 +16,24 @@ class Game:
         self.clock = pg.time.Clock()
         self.running = True
 
+        self.last_update = pg.time.get_ticks()
+
     def new(self):
         """start a new game"""
         self.all_sprites = pg.sprite.Group()
         self.platforms = pg.sprite.Group()
-        self.player = Player()
+        self.player = Player(self)
         self.all_sprites.add(self.player)
-        platform1 = Platform(0, HEIGHT-40, WIDTH, 40)
-        self.all_sprites.add(platform1)
-        self.platforms.add(platform1)
-        platform2 = Platform(WIDTH/2-50, HEIGHT*3/4, 100, 20)
-        self.all_sprites.add(platform2)
-        self.platforms.add(platform2)
+
+        #create platforms, starting with base
+        self.base_platform = Platform(-3000, HEIGHT-40, 16350, 300) #width was W*10
+        self.all_sprites.add(self.base_platform)
+        self.platforms.add(self.base_platform)
+        #other platforms
+        for platform in PLATFORM_LIST:
+            plat = Platform(*platform)
+            self.all_sprites.add(plat)
+            self.platforms.add(plat)
         self.run()
     
     def run(self):
@@ -42,11 +48,45 @@ class Game:
     def update(self):
         """game loop update"""
         self.all_sprites.update()
-        hits = pg.sprite.spritecollide(self.player, self.platforms, False)
-        if hits:
-            self.player.pos.y = hits[0].rect.top+1
-            self.player.vel.y = 0
-    
+
+        # if player hits surface of platform
+        if self.player.vel.y > 0:
+            hits = pg.sprite.spritecollide(self.player, self.platforms, False)
+            if hits:
+                self.player.pos.y = hits[0].rect.top+1
+                self.player.vel.y = 0
+        # if player hits bottom of platform (from jumping)
+        if self.player.vel.y < 0:
+            hits = pg.sprite.spritecollide(self.player, self.platforms, False)
+            if hits:
+                self.player.pos.y = hits[0].rect.bottom+40
+                self.player.vel.y = 0
+                self.player.acc.y = 0
+
+        # if player reaches top 1/4 of screen
+        if self.player.rect.top <= HEIGHT/6 or self.player.rect.top >= HEIGHT/2:
+            self.player.pos.y -= self.player.vel.y
+            for platform in self.platforms:
+                platform.rect.y -= self.player.vel.y
+
+        #correction of y coordinates of player
+        now = pg.time.get_ticks()
+        if now - self.last_update > 10:
+            self.last_update = now
+            if abs(self.player.pos.y - HEIGHT/2) > 2:
+                if HEIGHT/2 - self.player.pos.y < 0: #player below middle
+                    sign = -1
+                else:
+                    sign = 1
+                self.player.pos.y += sign
+                for platform in self.platforms:
+                    platform.rect.y += sign
+
+
+        self.player.pos.x -= self.player.vel.x
+        for platform in self.platforms:
+            platform.rect.x -= int(self.player.vel.x)
+
     def events(self):
         """game loop events"""
         for event in pg.event.get():
@@ -54,6 +94,10 @@ class Game:
                 if self.playing:
                     self.playing = False
                 self.running = False
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_SPACE:
+                    if self.player.vel.y == 0:
+                        self.player.jump()
     
     def draw(self):
         """game loop draw"""
