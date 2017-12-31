@@ -17,7 +17,6 @@ class Player(pg.sprite.Sprite):
     def jump(self):
         self.vel.y = -14
 
-
     def update(self):
         self.acc = vec(0, PLAYER_GRAV)
         keys = pg.key.get_pressed()
@@ -32,13 +31,6 @@ class Player(pg.sprite.Sprite):
         # equations of motion
         self.vel += self.acc
         self.pos += self.vel + 0.5*self.acc
-
-        # wrap screen
-        if self.pos.x > WIDTH:
-            self.pos.x = 0
-        if self.pos.x < 0:
-            self.pos.x = WIDTH
-
         self.rect.midbottom = self.pos
 
 
