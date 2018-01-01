@@ -13,6 +13,7 @@ class Player(pg.sprite.Sprite):
         self.pos = vec(WIDTH/2, HEIGHT/2)
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
+        self.collision = [False] * 9
 
     def jump(self):
         self.vel.y = -14
@@ -24,15 +25,23 @@ class Player(pg.sprite.Sprite):
             self.acc.x = -PLAYER_ACC
         if keys[pg.K_RIGHT]:
             self.acc.x = PLAYER_ACC
-
         # apply friction
         self.acc.x += self.vel.x * PLAYER_FRICTION
-
         # equations of motion
         self.vel += self.acc
         self.pos += self.vel + 0.5*self.acc
         self.rect.midbottom = self.pos
 
+    def check_collision(self, platform_rect):
+        self.collision[0] = platform_rect.collidepoint(self.rect.topleft)
+        self.collision[1] = platform_rect.collidepoint(self.rect.topright)
+        self.collision[2] = platform_rect.collidepoint(self.rect.bottomleft)
+        self.collision[3] = platform_rect.collidepoint(self.rect.bottomright)
+        self.collision[4] = platform_rect.collidepoint(self.rect.midleft)
+        self.collision[5] = platform_rect.collidepoint(self.rect.midright)
+        self.collision[6] = platform_rect.collidepoint(self.rect.midtop)
+        self.collision[7] = platform_rect.collidepoint(self.rect.midbottom)
+        return self.collision
 
 class Platform(pg.sprite.Sprite):
     def __init__(self, x, y, w, h):
