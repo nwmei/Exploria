@@ -51,36 +51,18 @@ class Game:
         """game loop update"""
         self.all_sprites.update()
 
-        # if player hits side of platforms
-        platform_collision_index = self.player.rect.collidelist(self.platform_rect_list)
-        collision_point_list = self.player.check_collision(self.platform_rect_list[platform_collision_index])
-
-        # on top of platform
-        if (collision_point_list[2] == 1 or collision_point_list[3] == 1 or collision_point_list[7] == 1) \
-                and collision_point_list[5] != 1 and collision_point_list[4] != 1 and self.player.vel.y > 0:
-            self.player.pos.y = self.platform_rect_list[platform_collision_index].top + 1
-            self.player.vel.y = 0
-        # under platform
-        if (collision_point_list[0] == 1 or collision_point_list[1] == 1 or collision_point_list[6] == 1) \
-                and collision_point_list[5] != 1 and collision_point_list[4] != 1 and self.player.vel.y < 0:
-            self.player.pos.y = self.platform_rect_list[platform_collision_index].bottom + 40
-            self.player.vel.y = 0
-        # left side
-        if collision_point_list[5] == 1 and self.player.vel.x > 0:
-            self.player.pos.x = self.platform_rect_list[platform_collision_index].left - 1
-            self.player.vel.x = 0
-        # right side
-        if collision_point_list[4] == 1 and self.player.vel.x < 0:
-            self.player.pos.x = self.platform_rect_list[platform_collision_index].right + 1
-            self.player.vel.x = 0
-
-        # if player reaches top 1/4 of screen
+        # scroll map vertically while player moves
         if self.player.rect.top <= HEIGHT/6 or self.player.rect.top >= HEIGHT/2:
             self.player.pos.y -= self.player.vel.y
             for platform in self.platforms:
                 platform.rect.y -= self.player.vel.y
 
-        # correction of y coordinates of player
+        # scroll map horizontally while player moves
+        self.player.pos.x -= self.player.vel.x
+        for platform in self.platforms:
+            platform.rect.x -= int(self.player.vel.x)
+
+        # scheduled correction of y coordinates of all sprites
         now = pg.time.get_ticks()
         if now - self.last_vertical_correction > 10:
             self.last_vertical_correction = now
@@ -92,11 +74,6 @@ class Game:
                 self.player.pos.y += sign
                 for platform in self.platforms:
                     platform.rect.y += sign
-
-        # scroll map horizontally while player moves
-        self.player.pos.x -= self.player.vel.x
-        for platform in self.platforms:
-            platform.rect.x -= int(self.player.vel.x)
 
     def events(self):
         """game loop events"""
