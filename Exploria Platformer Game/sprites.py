@@ -15,10 +15,13 @@ class Player(pg.sprite.Sprite):
         self.pos = vec(WIDTH / 2, HEIGHT / 2)
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
-        self.collision = [False] * 9
+        self.collision = [False] * 8
+        self.health = PLAYER_MAX_HEALTH
+        self.last_auto_healing = pg.time.get_ticks()
+
 
     def jump(self):
-        self.vel.y = -14
+        self.vel.y = -PLAYER_JUMP
 
     def update(self):
         self.acc = vec(0, PLAYER_GRAV)
@@ -37,7 +40,6 @@ class Player(pg.sprite.Sprite):
         # find which platform rect the player is colliding with
         platform_collision_index = self.rect.collidelist(self.game.platform_rect_list)
         collision_point_list = self.check_collision(self.game.platform_rect_list[platform_collision_index])
-
         # on top of platform
         if (collision_point_list[2] == 1 or collision_point_list[3] == 1 or collision_point_list[7] == 1) \
                 and collision_point_list[5] != 1 and collision_point_list[4] != 1 and self.vel.y > 0:
@@ -50,15 +52,23 @@ class Player(pg.sprite.Sprite):
             self.vel.y = 0
         # left side
         if collision_point_list[5] == 1 and self.vel.x > 0:
-            self.pos.x = self.game.platform_rect_list[platform_collision_index].left - 1
+            self.pos.x = self.game.platform_rect_list[platform_collision_index].left - 15
             self.vel.x = 0
         # right side
         if collision_point_list[4] == 1 and self.vel.x < 0:
-            self.pos.x = self.game.platform_rect_list[platform_collision_index].right + 1
+            self.pos.x = self.game.platform_rect_list[platform_collision_index].right + 15
             self.vel.x = 0
 
+        # auto healing
+        now = pg.time.get_ticks()
+        if now - self.last_auto_healing > 10000 and self.health < PLAYER_MAX_HEALTH:
+            self.last_auto_healing = now
+            self.health += 3
+            if self.health > 100:
+                self.health = 100
 
     def check_collision(self, platform_rect):
+        """returns list containing 0s and 1s depending on where player is colliding with platform"""
         self.collision[0] = platform_rect.collidepoint(self.rect.topleft)
         self.collision[1] = platform_rect.collidepoint(self.rect.topright)
         self.collision[2] = platform_rect.collidepoint(self.rect.bottomleft)
@@ -71,6 +81,7 @@ class Player(pg.sprite.Sprite):
 
 
 class Platform(pg.sprite.Sprite):
+    """class for game platforms"""
     def __init__(self, x, y, w, h):
         pg.sprite.Sprite.__init__(self)
         self.image = pg.Surface((w, h))
