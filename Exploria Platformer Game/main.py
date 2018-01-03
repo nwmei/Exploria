@@ -17,6 +17,7 @@ class Game:
         self.running = True
         self.last_vertical_correction = pg.time.get_ticks()
         self.platform_rect_list = []
+        self.font_name = pg.font.match_font(FONT_NAME)
 
     def new(self):
         """start a new game"""
@@ -91,6 +92,7 @@ class Game:
         """game loop draw"""
         self.screen.fill(BLACK)
         self.all_sprites.draw(self.screen)
+        self.draw_text(str(self.player.health), 22, WHITE, WIDTH/2, 15)
         pg.display.flip()
 
     def show_start_screen(self):
@@ -100,6 +102,13 @@ class Game:
     def show_go_screen(self):
         """game over screen"""
         pass
+
+    def draw_text(self, text, size, color, x, y):
+        font = pg.font.Font(self.font_name, size)
+        text_surface = font.render(text, True, color)
+        text_rect = text_surface.get_rect()
+        text_rect.midtop = (x, y)
+        self.screen.blit(text_surface, text_rect)
 
 g = Game()
 g.show_start_screen()
