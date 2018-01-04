@@ -1,10 +1,10 @@
-#Exploria Platform Game
 import pygame as pg
 import random
 import os
 from settings import *
 from sprites import *
 
+# Exploria Platform Game
 
 class Game:
     def __init__(self):
@@ -80,8 +80,7 @@ class Game:
         """game loop events"""
         for event in pg.event.get():
             if event.type == pg.QUIT:
-                if self.playing:
-                    self.playing = False
+                self.playing = False
                 self.running = False
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_SPACE:
@@ -90,18 +89,34 @@ class Game:
     
     def draw(self):
         """game loop draw"""
-        self.screen.fill(BLACK)
+        self.screen.fill(BGCOLOR)
         self.all_sprites.draw(self.screen)
-        self.draw_text(str(self.player.health), 22, WHITE, WIDTH/2, 15)
+        self.draw_text('Health: '+str(self.player.health), 22, WHITE, WIDTH/2, 15)
         pg.display.flip()
 
     def show_start_screen(self):
         """game start screen"""
-        pass
+        self.screen.fill(BGCOLOR)
+        self.draw_text(TITLE, 48, WHITE, WIDTH/2, HEIGHT/4)
+        self.draw_text("Arrows to move, space to jump", 22, WHITE, WIDTH/2, HEIGHT/2)
+        self.draw_text("Press a key to play", 22, WHITE, WIDTH/2, HEIGHT*3/4)
+        pg.display.flip()
+        self.wait_for_key()
 
     def show_go_screen(self):
         """game over screen"""
         pass
+
+    def wait_for_key(self):
+        waiting = True
+        while waiting:
+            self.clock.tick(FPS)
+            for event in pg.event.get():
+                if event.type == pg.quit():
+                    waiting = False
+                    self.running = False
+                if event.type == pg.KEYUP:
+                    waiting = False
 
     def draw_text(self, text, size, color, x, y):
         font = pg.font.Font(self.font_name, size)
