@@ -105,14 +105,20 @@ class Game:
 
     def show_go_screen(self):
         """game over screen"""
-        pass
+        # if not self.running:
+        #     return
+        self.screen.fill(BGCOLOR)
+        self.draw_text("Game Over", 48, WHITE, WIDTH / 2, HEIGHT / 4)
+        pg.display.flip()
+        self.wait_for_key()
 
     def wait_for_key(self):
+        print('in the wait for key method')
         waiting = True
         while waiting:
             self.clock.tick(FPS)
             for event in pg.event.get():
-                if event.type == pg.quit():
+                if event.type == pg.QUIT:
                     waiting = False
                     self.running = False
                 if event.type == pg.KEYUP:
@@ -129,7 +135,7 @@ g = Game()
 g.show_start_screen()
 while g.running:
     g.new()
-    g.show_go_screen
+    g.show_go_screen()
 
 pg.quit()
 
