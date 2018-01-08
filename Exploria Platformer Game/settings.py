@@ -11,6 +11,7 @@ PLAYER_GRAV = 0.5
 PLAYER_JUMP = 14
 PLAYER_MAX_HEALTH = 100
 FONT_NAME = 'arial'
+SPRITESHEET = 'spritesheet_jumper.png'
 
 #starting platforms
 PLATFORM_LIST = [(WIDTH/2-50, HEIGHT*3/4-50, 1000, 30),
@@ -19,9 +20,11 @@ PLATFORM_LIST = [(WIDTH/2-50, HEIGHT*3/4-50, 1000, 30),
                  (175, 90, 1000, 30)]
 
 #define common colors
-BLACK = (0,0,0)
-WHITE = (255,255,255)
-RED = (255,0,0)
-GREEN = (0,255,0)
-BLUE = (0,0,255)
-YELLOW = (255,255,0)
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+YELLOW = (255, 255, 0)
+LIGHTBLUE = (0, 155, 155)
+BGCOLOR = LIGHTBLUE
