@@ -1,6 +1,7 @@
 import pygame as pg
 import random
 import os
+from os import path
 from settings import *
 from sprites import *
 
@@ -19,15 +20,22 @@ class Game:
         self.platform_rect_list = []
         self.font_name = pg.font.match_font(FONT_NAME)
 
+    def load_data(self):
+        self.dir = path.dirname(__file__)
+        img_dir = path.join(self.dir, 'img')
+        # spritesheet object, can now call get_image
+        self.spritesheet = Spritesheet(path.join(img_dir, SPRITESHEET))
+
     def new(self):
         """start a new game"""
+        self.load_data()
         self.all_sprites = pg.sprite.Group()
         self.platforms = pg.sprite.Group()
         self.player = Player(self)
         self.all_sprites.add(self.player)
 
         # create platforms, starting with base
-        self.base_platform = Platform(-3000, HEIGHT-40, 16350, 300) #width was W*10
+        self.base_platform = Platform(-3000, HEIGHT-40, 16350, 300)
         self.all_sprites.add(self.base_platform)
         self.platforms.add(self.base_platform)
         self.platform_rect_list.append(self.base_platform.rect)
@@ -75,7 +83,6 @@ class Game:
                 self.player.pos.y += sign
                 for platform in self.platforms:
                     platform.rect.y += sign
-
     def events(self):
         """game loop events"""
         for event in pg.event.get():
@@ -86,6 +93,8 @@ class Game:
                 if event.key == pg.K_SPACE:
                     if self.player.vel.y == 0:
                         self.player.jump()
+                if event.key == pg.K_DOWN:
+                    self.player.under_jump()
     
     def draw(self):
         """game loop draw"""
@@ -105,15 +114,14 @@ class Game:
 
     def show_go_screen(self):
         """game over screen"""
-        # if not self.running:
-        #     return
+        if not self.running:
+            return
         self.screen.fill(BGCOLOR)
         self.draw_text("Game Over", 48, WHITE, WIDTH / 2, HEIGHT / 4)
         pg.display.flip()
         self.wait_for_key()
 
     def wait_for_key(self):
-        print('in the wait for key method')
         waiting = True
         while waiting:
             self.clock.tick(FPS)
