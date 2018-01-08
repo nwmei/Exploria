@@ -8,8 +8,9 @@ class Player(pg.sprite.Sprite):
     def __init__(self, game):
         pg.sprite.Sprite.__init__(self)
         self.game = game
-        self.image = pg.Surface((30, 40))
-        self.image.fill(YELLOW)
+        self.image = self.game.spritesheet.get_image(614, 1063, 120, 191)
+        self.image.set_colorkey(BLACK)
+
         self.rect = self.image.get_rect()
         self.rect.center = (WIDTH / 2, HEIGHT / 2)
         self.pos = vec(WIDTH / 2, HEIGHT / 2)
@@ -22,6 +23,15 @@ class Player(pg.sprite.Sprite):
 
     def jump(self):
         self.vel.y = -PLAYER_JUMP
+
+    def under_jump(self):
+        self.pos.y += 1
+        below_platforms = pg.sprite.spritecollide(self, self.game.platforms, False)
+        self.pos.y -= 1
+        for platform in below_platforms:
+            if platform != self.game.base_platform:
+                self.pos = (self.pos.x, platform.rect.midbottom[1])
+
 
     def update(self):
         self.acc = vec(0, PLAYER_GRAV)
@@ -46,18 +56,18 @@ class Player(pg.sprite.Sprite):
             self.pos.y = self.game.platform_rect_list[platform_collision_index].top + 1
             self.vel.y = 0
         # under platform
-        if (collision_point_list[0] == 1 or collision_point_list[1] == 1 or collision_point_list[6] == 1) \
-                and collision_point_list[5] != 1 and collision_point_list[4] != 1 and self.vel.y < 0:
-            self.pos.y = self.game.platform_rect_list[platform_collision_index].bottom + 40
-            self.vel.y = 0
+        # if (collision_point_list[0] == 1 or collision_point_list[1] == 1 or collision_point_list[6] == 1) \
+        #         and collision_point_list[5] != 1 and collision_point_list[4] != 1 and self.vel.y < 0:
+        #     self.pos.y = self.game.platform_rect_list[platform_collision_index].bottom + 40
+        #     self.vel.y = 0
         # left side
-        if collision_point_list[5] == 1 and self.vel.x > 0:
-            self.pos.x = self.game.platform_rect_list[platform_collision_index].left - 15
-            self.vel.x = 0
-        # right side
-        if collision_point_list[4] == 1 and self.vel.x < 0:
-            self.pos.x = self.game.platform_rect_list[platform_collision_index].right + 15
-            self.vel.x = 0
+        # if collision_point_list[5] == 1 and self.vel.x > 0:
+        #     self.pos.x = self.game.platform_rect_list[platform_collision_index].left - 15
+        #     self.vel.x = 0
+        # # right side
+        # if collision_point_list[4] == 1 and self.vel.x < 0:
+        #     self.pos.x = self.game.platform_rect_list[platform_collision_index].right + 15
+        #     self.vel.x = 0
 
         # auto healing
         now = pg.time.get_ticks()
@@ -89,3 +99,15 @@ class Platform(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+
+class Spritesheet:
+    """ utility class for loading and parsing spritesheets """
+    def __init__(self, filename):
+        self.spritesheet = pg.image.load(filename).convert()
+
+    def get_image(self, x, y, width, height):
+        # grab image out of spritesheet
+        image = pg.Surface((width, height))
+        image.blit(self.spritesheet, (0, 0), (x, y, width, height))
+        image = pg.transform.scale(image, (width//2, height//2))
+        return image
