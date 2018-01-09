@@ -18,6 +18,7 @@ class Game:
         self.running = True
         self.last_vertical_correction = pg.time.get_ticks()
         self.platform_rect_list = []
+        self.platform_distances_from_base = []
         self.font_name = pg.font.match_font(FONT_NAME)
 
     def load_data(self):
@@ -39,12 +40,20 @@ class Game:
         self.all_sprites.add(self.base_platform)
         self.platforms.add(self.base_platform)
         self.platform_rect_list.append(self.base_platform.rect)
+        self.platform_distances_from_base.append(0)
+
         # other platforms
         for platform in PLATFORM_LIST:
             plat = Platform(*platform)
             self.all_sprites.add(plat)
             self.platforms.add(plat)
+            # created a list of plat rects so that program can refer to them in the
+            # order that they were created. iterating through a sprite group does not
+            # always happen in the order that sprites were added to the group. The elements
+            # in the rect list point to the actual rects of the platforms (mutable).
             self.platform_rect_list.append(plat.rect)
+            # platform distances list indices correspond to rect list.
+            self.platform_distances_from_base.append(self.base_platform.rect.y - plat.rect.y)
         self.run()
     
     def run(self):
@@ -83,6 +92,11 @@ class Game:
                 self.player.pos.y += sign
                 for platform in self.platforms:
                     platform.rect.y += sign
+                # fix distance from base platform to other platforms
+                # just refer to the rects in the rect list
+                for iteration in range(len(self.platform_rect_list)):
+                    self.platform_rect_list[iteration].y = self.base_platform.rect.y - self.platform_distances_from_base[iteration]
+
     def events(self):
         """game loop events"""
         for event in pg.event.get():
