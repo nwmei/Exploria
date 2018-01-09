@@ -25,12 +25,24 @@ class Player(pg.sprite.Sprite):
 
     def under_jump(self):
         self.pos.y += 1
-        below_platforms = pg.sprite.spritecollide(self, self.game.platforms, False)
+        platform_collision_indices = self.rect.collidelistall(self.game.platform_rect_list)
+        floor_index = self.lower_platform_index(platform_collision_indices)
         self.pos.y -= 1
-        for platform in below_platforms:
-            if platform != self.game.base_platform:
-                self.pos = (self.pos[0], platform.rect.midbottom[1])
+        if self.game.platform_rect_list[floor_index] != self.game.base_platform.rect and floor_index != -1:
+            self.pos = (self.pos[0], self.game.platform_rect_list[floor_index].midbottom[1])
 
+    def lower_platform_index(self, indices):
+        if len(indices) == 0:
+            floor_index = -1
+        elif len(indices) == 1:
+            floor_index = indices[0]
+        else:
+            # check which player is standing on
+            floor_index = indices[0]
+            for index in indices:
+                if self.game.platform_rect_list[index].y > self.game.platform_rect_list[floor_index].y:
+                    floor_index = index
+        return floor_index
 
     def update(self):
         self.acc = vec(0, PLAYER_GRAV)
@@ -47,20 +59,9 @@ class Player(pg.sprite.Sprite):
         self.rect.midbottom = self.pos
 
         # find which platform rect the player is colliding with
-        platform_collision_index = self.rect.collidelistall(self.game.platform_rect_list)
+        platform_collision_indices = self.rect.collidelistall(self.game.platform_rect_list)
 
-        # find which platform is the one player is standing on
-        if len(platform_collision_index) == 0:
-            floor_index = -1
-        elif len(platform_collision_index) == 1:
-            floor_index = platform_collision_index[0]
-        else:
-            # check which player is standing on
-            floor_index = 0
-            for index in platform_collision_index:
-                if self.game.platform_rect_list[index].y < self.game.platform_rect_list[floor_index].y:
-                    floor_index = index
-
+        floor_index = self.lower_platform_index(platform_collision_indices)
         collision_point_list = self.check_collision(self.game.platform_rect_list[floor_index])
         # on top of platform
         if (collision_point_list[2] == 1 or collision_point_list[3] == 1 or collision_point_list[7] == 1) \
@@ -91,10 +92,13 @@ class Player(pg.sprite.Sprite):
 
 class Platform(pg.sprite.Sprite):
     """class for game platforms"""
-    def __init__(self, x, y, w, h):
+    def __init__(self, x, y, w, h, game):
         pg.sprite.Sprite.__init__(self)
-        self.image = pg.Surface((w, h))
-        self.image.fill(GREEN)
+        #self.image = pg.Surface((w, h))
+        self.game = game
+        self.image = self.game.spritesheet.get_image(0, 288, 380, 94)
+        self.image = pg.transform.scale(self.image, (w, h*2))
+        self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
