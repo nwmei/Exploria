@@ -8,6 +8,11 @@ class Player(pg.sprite.Sprite):
     def __init__(self, game):
         pg.sprite.Sprite.__init__(self)
         self.game = game
+        self.walking = False
+        self.jumping = False
+        self.current_frame = 0
+        self.last_update = 0
+        self.load_images()
         self.image = self.game.spritesheet.get_image(614, 1063, 120, 191)
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
@@ -19,11 +24,27 @@ class Player(pg.sprite.Sprite):
         self.health = PLAYER_MAX_HEALTH
         self.last_auto_healing = pg.time.get_ticks()
 
+    def load_images(self):
+        self.standing_frames = [self.game.spritesheet.get_image(614, 1063, 120, 191),
+                         self.game.spritesheet.get_image(690, 406, 120, 201)]
+        for frame in self.standing_frames:
+            frame.set_colorkey(BLACK)
+        self.walk_frames_r = [self.game.spritesheet.get_image(678, 860, 120, 201),
+                              self.game.spritesheet.get_image(692, 1458, 120, 207)]
+        for frame in self.walk_frames_r:
+            frame.set_colorkey(BLACK)
+        self.walk_frames_l = [pg.transform.flip(self.game.spritesheet.get_image(678, 860, 120, 201), True, False),
+                              pg.transform.flip(self.game.spritesheet.get_image(692, 1458, 120, 207), True, False)]
+        for frame in self.walk_frames_l:
+            frame.set_colorkey(BLACK)
+        self.jump_frame = self.game.spritesheet.get_image(382, 763, 150, 181)
+        self.jump_frame.set_colorkey(BLACK)
 
     def jump(self):
         self.vel.y = -PLAYER_JUMP
 
     def under_jump(self):
+        """make player jump off current platform"""
         self.pos.y += 1
         platform_collision_indices = self.rect.collidelistall(self.game.platform_rect_list)
         floor_index = self.lower_platform_index(platform_collision_indices)
@@ -32,6 +53,7 @@ class Player(pg.sprite.Sprite):
             self.pos = (self.pos[0], self.game.platform_rect_list[floor_index].midbottom[1])
 
     def lower_platform_index(self, indices):
+        """takes in a list of indices of platform rects and return index for platform that player is standing on"""
         if len(indices) == 0:
             floor_index = -1
         elif len(indices) == 1:
@@ -45,6 +67,9 @@ class Player(pg.sprite.Sprite):
         return floor_index
 
     def update(self):
+        print(self.vel)
+        self.animate()
+
         self.acc = vec(0, PLAYER_GRAV)
         keys = pg.key.get_pressed()
         if keys[pg.K_LEFT]:
@@ -77,6 +102,18 @@ class Player(pg.sprite.Sprite):
             if self.health > 100:
                 self.health = 100
 
+    def animate(self):
+        now = pg.time.get_ticks()
+        if not self.jumping and not self.walking:
+            if now - self.last_update > 370:
+                self.last_update = now
+                self.current_frame = (self.current_frame + 1) % len(self.standing_frames)
+                bottom = self.rect.bottom
+                self.image = self.standing_frames[self.current_frame]
+                self.rect = self.image.get_rect()
+                self.rect.bottom = bottom
+
+
     def check_collision(self, sprite_rect):
         """returns list containing 0s and 1s depending on where player is colliding with platform"""
         self.collision[0] = sprite_rect.collidepoint(self.rect.topleft)
@@ -94,7 +131,6 @@ class Platform(pg.sprite.Sprite):
     """class for game platforms"""
     def __init__(self, x, y, w, h, game):
         pg.sprite.Sprite.__init__(self)
-        #self.image = pg.Surface((w, h))
         self.game = game
         self.image = self.game.spritesheet.get_image(0, 288, 380, 94)
         self.image = pg.transform.scale(self.image, (w, h*2))
