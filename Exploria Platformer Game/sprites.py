@@ -10,7 +10,6 @@ class Player(pg.sprite.Sprite):
         self.game = game
         self.image = self.game.spritesheet.get_image(614, 1063, 120, 191)
         self.image.set_colorkey(BLACK)
-
         self.rect = self.image.get_rect()
         self.rect.center = (WIDTH / 2, HEIGHT / 2)
         self.pos = vec(WIDTH / 2, HEIGHT / 2)
@@ -30,7 +29,7 @@ class Player(pg.sprite.Sprite):
         self.pos.y -= 1
         for platform in below_platforms:
             if platform != self.game.base_platform:
-                self.pos = (self.pos.x, platform.rect.midbottom[1])
+                self.pos = (self.pos[0], platform.rect.midbottom[1])
 
 
     def update(self):
@@ -48,26 +47,26 @@ class Player(pg.sprite.Sprite):
         self.rect.midbottom = self.pos
 
         # find which platform rect the player is colliding with
-        platform_collision_index = self.rect.collidelist(self.game.platform_rect_list)
-        collision_point_list = self.check_collision(self.game.platform_rect_list[platform_collision_index])
+        platform_collision_index = self.rect.collidelistall(self.game.platform_rect_list)
+
+        # find which platform is the one player is standing on
+        if len(platform_collision_index) == 0:
+            floor_index = -1
+        elif len(platform_collision_index) == 1:
+            floor_index = platform_collision_index[0]
+        else:
+            # check which player is standing on
+            floor_index = 0
+            for index in platform_collision_index:
+                if self.game.platform_rect_list[index].y < self.game.platform_rect_list[floor_index].y:
+                    floor_index = index
+
+        collision_point_list = self.check_collision(self.game.platform_rect_list[floor_index])
         # on top of platform
         if (collision_point_list[2] == 1 or collision_point_list[3] == 1 or collision_point_list[7] == 1) \
                 and collision_point_list[5] != 1 and collision_point_list[4] != 1 and self.vel.y > 0:
-            self.pos.y = self.game.platform_rect_list[platform_collision_index].top + 1
+            self.pos.y = self.game.platform_rect_list[floor_index].top + 1
             self.vel.y = 0
-        # under platform
-        # if (collision_point_list[0] == 1 or collision_point_list[1] == 1 or collision_point_list[6] == 1) \
-        #         and collision_point_list[5] != 1 and collision_point_list[4] != 1 and self.vel.y < 0:
-        #     self.pos.y = self.game.platform_rect_list[platform_collision_index].bottom + 40
-        #     self.vel.y = 0
-        # left side
-        # if collision_point_list[5] == 1 and self.vel.x > 0:
-        #     self.pos.x = self.game.platform_rect_list[platform_collision_index].left - 15
-        #     self.vel.x = 0
-        # # right side
-        # if collision_point_list[4] == 1 and self.vel.x < 0:
-        #     self.pos.x = self.game.platform_rect_list[platform_collision_index].right + 15
-        #     self.vel.x = 0
 
         # auto healing
         now = pg.time.get_ticks()
@@ -77,16 +76,16 @@ class Player(pg.sprite.Sprite):
             if self.health > 100:
                 self.health = 100
 
-    def check_collision(self, platform_rect):
+    def check_collision(self, sprite_rect):
         """returns list containing 0s and 1s depending on where player is colliding with platform"""
-        self.collision[0] = platform_rect.collidepoint(self.rect.topleft)
-        self.collision[1] = platform_rect.collidepoint(self.rect.topright)
-        self.collision[2] = platform_rect.collidepoint(self.rect.bottomleft)
-        self.collision[3] = platform_rect.collidepoint(self.rect.bottomright)
-        self.collision[4] = platform_rect.collidepoint(self.rect.midleft)
-        self.collision[5] = platform_rect.collidepoint(self.rect.midright)
-        self.collision[6] = platform_rect.collidepoint(self.rect.midtop)
-        self.collision[7] = platform_rect.collidepoint(self.rect.midbottom)
+        self.collision[0] = sprite_rect.collidepoint(self.rect.topleft)
+        self.collision[1] = sprite_rect.collidepoint(self.rect.topright)
+        self.collision[2] = sprite_rect.collidepoint(self.rect.bottomleft)
+        self.collision[3] = sprite_rect.collidepoint(self.rect.bottomright)
+        self.collision[4] = sprite_rect.collidepoint(self.rect.midleft)
+        self.collision[5] = sprite_rect.collidepoint(self.rect.midright)
+        self.collision[6] = sprite_rect.collidepoint(self.rect.midtop)
+        self.collision[7] = sprite_rect.collidepoint(self.rect.midbottom)
         return self.collision
 
 
