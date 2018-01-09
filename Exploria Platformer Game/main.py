@@ -36,7 +36,7 @@ class Game:
         self.all_sprites.add(self.player)
 
         # create platforms, starting with base
-        self.base_platform = Platform(-3000, HEIGHT-40, 16350, 300)
+        self.base_platform = Platform(-3000, HEIGHT-40, 16350, 300, self)
         self.all_sprites.add(self.base_platform)
         self.platforms.add(self.base_platform)
         self.platform_rect_list.append(self.base_platform.rect)
@@ -44,7 +44,8 @@ class Game:
 
         # other platforms
         for platform in PLATFORM_LIST:
-            plat = Platform(*platform)
+            x, y, w, h = platform
+            plat = Platform(x, y, w, h, self)
             self.all_sprites.add(plat)
             self.platforms.add(plat)
             # created a list of plat rects so that program can refer to them in the
@@ -86,9 +87,9 @@ class Game:
             self.last_vertical_correction = now
             if abs(self.player.pos.y - HEIGHT/2) > 2:
                 if HEIGHT/2 - self.player.pos.y < 0:
-                    sign = -1
+                    sign = -2
                 else:
-                    sign = 1
+                    sign = 2
                 self.player.pos.y += sign
                 for platform in self.platforms:
                     platform.rect.y += sign
