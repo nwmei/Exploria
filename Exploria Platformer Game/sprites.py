@@ -9,11 +9,12 @@ class Player(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self)
         self.game = game
         self.walking = False
+        self.direction = "right"
         self.jumping = False
         self.current_frame = 0
         self.last_update = 0
         self.load_images()
-        self.image = self.game.spritesheet.get_image(614, 1063, 120, 191)
+        self.image = self.game.spritesheet.get_image(692, 1458, 120, 207)
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
         self.rect.center = (WIDTH / 2, HEIGHT / 2)
@@ -107,14 +108,15 @@ class Player(pg.sprite.Sprite):
         now = pg.time.get_ticks()
 
         # walk animation
-        if self.vel.x != 0:
-            self.walking = True
-            walking_left = True if self.vel.x < 0 else False
-        else:
-            self.walking = False
+        self.walking = True if self.vel.x != 0 else False
+        if self.vel.x < 0:
+            self.direction = "left"
+        elif self.vel.x > 0:
+            self.direction = "right"
+
         if self.walking and self.vel.y == 0:
             if now - self.last_update > 200:
-                frame_set = self.walk_frames_l if walking_left else self.walk_frames_r
+                frame_set = self.walk_frames_l if self.direction == "left" else self.walk_frames_r
                 self.last_update = now
                 self.current_frame = (self.current_frame + 1) % len(frame_set)
                 bottom = self.rect.bottom
@@ -125,9 +127,10 @@ class Player(pg.sprite.Sprite):
         elif not self.jumping and not self.walking:
             if now - self.last_update > 370:
                 self.last_update = now
-                self.current_frame = (self.current_frame + 1) % len(self.standing_frames)
                 bottom = self.rect.bottom
-                self.image = self.standing_frames[self.current_frame]
+                self.image = self.game.spritesheet.get_image(692, 1458, 120, 207) if self.direction == "right" \
+                    else pg.transform.flip(self.game.spritesheet.get_image(692, 1458, 120, 207), True, False)
+                self.image.set_colorkey(BLACK)
                 self.rect = self.image.get_rect()
                 self.rect.bottom = bottom
 
