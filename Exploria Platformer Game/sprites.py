@@ -67,7 +67,6 @@ class Player(pg.sprite.Sprite):
         return floor_index
 
     def update(self):
-        print(self.vel)
         self.animate()
 
         self.acc = vec(0, PLAYER_GRAV)
@@ -80,6 +79,8 @@ class Player(pg.sprite.Sprite):
         self.acc.x += self.vel.x * PLAYER_FRICTION
         # equations of motion
         self.vel += self.acc
+        if abs(self.vel.x) < 0.5:
+            self.vel.x = 0
         self.pos += self.vel + 0.5 * self.acc
         self.rect.midbottom = self.pos
 
@@ -104,7 +105,24 @@ class Player(pg.sprite.Sprite):
 
     def animate(self):
         now = pg.time.get_ticks()
-        if not self.jumping and not self.walking:
+
+        # walk animation
+        if self.vel.x != 0:
+            self.walking = True
+            walking_left = True if self.vel.x < 0 else False
+        else:
+            self.walking = False
+        if self.walking and self.vel.y == 0:
+            if now - self.last_update > 200:
+                frame_set = self.walk_frames_l if walking_left else self.walk_frames_r
+                self.last_update = now
+                self.current_frame = (self.current_frame + 1) % len(frame_set)
+                bottom = self.rect.bottom
+                self.image = frame_set[self.current_frame]
+                self.rect = self.image.get_rect()
+                self.rect.bottom = bottom
+
+        elif not self.jumping and not self.walking:
             if now - self.last_update > 370:
                 self.last_update = now
                 self.current_frame = (self.current_frame + 1) % len(self.standing_frames)
