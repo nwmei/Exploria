@@ -24,7 +24,6 @@ class Game:
     def load_data(self):
         self.dir = path.dirname(__file__)
         img_dir = path.join(self.dir, 'img')
-        # spritesheet object, can now call get_image
         self.spritesheet = Spritesheet(path.join(img_dir, SPRITESHEET))
 
     def new(self):
@@ -55,6 +54,7 @@ class Game:
             self.platform_rect_list.append(plat.rect)
             # platform distances list indices correspond to rect list.
             self.platform_distances_from_base.append(self.base_platform.rect.y - plat.rect.y)
+
         self.run()
     
     def run(self):
@@ -115,6 +115,7 @@ class Game:
         """game loop draw"""
         self.screen.fill(BGCOLOR)
         self.all_sprites.draw(self.screen)
+        self.screen.blit(self.player.image, self.player.rect)
         self.draw_text('Health: '+str(self.player.health), 22, WHITE, WIDTH/2, 15)
         pg.display.flip()
 
