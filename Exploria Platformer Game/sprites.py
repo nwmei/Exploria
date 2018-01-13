@@ -1,12 +1,14 @@
 import pygame as pg
 from settings import *
+import math
 
 vec = pg.math.Vector2
 
 
 class Player(pg.sprite.Sprite):
     def __init__(self, game):
-        pg.sprite.Sprite.__init__(self)
+        self.groups = game.all_sprites
+        pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.walking = False
         self.direction = "right"
@@ -42,6 +44,7 @@ class Player(pg.sprite.Sprite):
         self.jump_frame.set_colorkey(BLACK)
 
     def jump(self):
+        self.game.jump_sound.play()
         self.vel.y = -PLAYER_JUMP
 
     def under_jump(self):
@@ -91,16 +94,18 @@ class Player(pg.sprite.Sprite):
         floor_index = self.lower_platform_index(platform_collision_indices)
         collision_point_list = self.check_collision(self.game.platform_rect_list[floor_index])
         # on top of platform
-        if (collision_point_list[2] == 1 or collision_point_list[3] == 1 or collision_point_list[7] == 1) \
-                and collision_point_list[5] != 1 and collision_point_list[4] != 1 and self.vel.y > 0:
-            self.pos.y = self.game.platform_rect_list[floor_index].top + 1
-            self.vel.y = 0
+        if self.pos.x < self.game.platform_rect_list[floor_index].right + 10 and \
+            self.pos.x > self.game.platform_rect_list[floor_index].left - 10:
+            if (collision_point_list[2] == 1 or collision_point_list[3] == 1 or collision_point_list[7] == 1) \
+                    and collision_point_list[5] != 1 and collision_point_list[4] != 1 and self.vel.y > 0:
+                self.pos.y = self.game.platform_rect_list[floor_index].top + 1
+                self.vel.y = 0
 
         # auto healing
         now = pg.time.get_ticks()
         if now - self.last_auto_healing > 10000 and self.health < PLAYER_MAX_HEALTH:
             self.last_auto_healing = now
-            self.health += 3
+            self.health += 1
             if self.health > 100:
                 self.health = 100
 
@@ -115,7 +120,7 @@ class Player(pg.sprite.Sprite):
             self.direction = "right"
 
         if self.walking and self.vel.y == 0:
-            if now - self.last_update > 200:
+            if now - self.last_update > 170:
                 frame_set = self.walk_frames_l if self.direction == "left" else self.walk_frames_r
                 self.last_update = now
                 self.current_frame = (self.current_frame + 1) % len(frame_set)
@@ -151,9 +156,10 @@ class Player(pg.sprite.Sprite):
 class Platform(pg.sprite.Sprite):
     """class for game platforms"""
     def __init__(self, x, y, w, h, game):
-        pg.sprite.Sprite.__init__(self)
+        self.groups = game.all_sprites, game.platforms
+        pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = self.game.spritesheet.get_image(0, 288, 380, 94)
+        self.image = self.game.spritesheet.get_image(0, 384, 380, 94)
         self.image = pg.transform.scale(self.image, (w, h*2))
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
@@ -171,3 +177,21 @@ class Spritesheet:
         image.blit(self.spritesheet, (0, 0), (x, y, width, height))
         image = pg.transform.scale(image, (width//2, height//2))
         return image
+
+class PowerUp:
+    def __init__(self, game, plat):
+        self.groups = game.all_sprites, game.powerups
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.plat = plat
+        self.type = math.choice(['boost'])
+        self.image = self.game.spritesheet.get_image(820, 1805, 71, 70)
+        self.image.set_colorkey(BLACK)
+        self.rect = self.image.get_rect
+        self.rect.centerx = self.plat.rect.centerx
+        self.rect.bottom = self.plat.rect.top - 5
+
+    def update(self):
+        self.rect.bottom = self.plat.rect.top -5
+        if not self.game.platforms.has(self.plat):
+            self.kill()
