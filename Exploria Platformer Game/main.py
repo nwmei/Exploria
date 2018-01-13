@@ -25,6 +25,8 @@ class Game:
         self.dir = path.dirname(__file__)
         img_dir = path.join(self.dir, 'img')
         self.spritesheet = Spritesheet(path.join(img_dir, SPRITESHEET))
+        self.snd_dir = path.join(self.dir, 'snd')
+        self.jump_sound = pg.mixer.Sound(path.join(self.snd_dir, 'sound_3.wav'))
 
     def new(self):
         """start a new game"""
@@ -55,17 +57,21 @@ class Game:
             # platform distances list indices correspond to rect list.
             self.platform_distances_from_base.append(self.base_platform.rect.y - plat.rect.y)
 
+        pg.mixer.music.load(path.join(self.snd_dir, 'TownTheme.ogg'))
+
         self.run()
     
     def run(self):
         """game loop"""
+        pg.mixer.music.play(loops=-1)
         self.playing = True
         while self.playing:
             self.clock.tick(FPS)
             self.events()
             self.update()
             self.draw()
-            
+        pg.mixer.music.fadeout(500)
+
     def update(self):
         """game loop update"""
         self.all_sprites.update()
