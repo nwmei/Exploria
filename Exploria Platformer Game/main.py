@@ -33,13 +33,11 @@ class Game:
         self.load_data()
         self.all_sprites = pg.sprite.Group()
         self.platforms = pg.sprite.Group()
+        self.powerups = pg.sprite.Group()
         self.player = Player(self)
-        self.all_sprites.add(self.player)
 
         # create platforms, starting with base
         self.base_platform = Platform(-3000, HEIGHT-40, 16350, 300, self)
-        self.all_sprites.add(self.base_platform)
-        self.platforms.add(self.base_platform)
         self.platform_rect_list.append(self.base_platform.rect)
         self.platform_distances_from_base.append(0)
 
@@ -47,8 +45,6 @@ class Game:
         for platform in PLATFORM_LIST:
             x, y, w, h = platform
             plat = Platform(x, y, w, h, self)
-            self.all_sprites.add(plat)
-            self.platforms.add(plat)
             # created a list of plat rects so that program can refer to them in the
             # order that they were created. iterating through a sprite group does not
             # always happen in the order that sprites were added to the group. The elements
