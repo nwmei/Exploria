@@ -1,6 +1,7 @@
 import pygame as pg
 from settings import *
-import math
+import random
+from random import randrange
 
 vec = pg.math.Vector2
 
@@ -165,6 +166,9 @@ class Platform(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        # spawn powerup
+        if randrange(100) < POW_SPAWN_PCT:
+            PowerUp(self.game, self)
 
 class Spritesheet:
     """ utility class for loading and parsing spritesheets """
@@ -178,20 +182,21 @@ class Spritesheet:
         image = pg.transform.scale(image, (width//2, height//2))
         return image
 
-class PowerUp:
+class PowerUp(pg.sprite.Sprite):
     def __init__(self, game, plat):
         self.groups = game.all_sprites, game.powerups
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.plat = plat
-        self.type = math.choice(['boost'])
+        self.type = random.choice(['boost'])
         self.image = self.game.spritesheet.get_image(820, 1805, 71, 70)
         self.image.set_colorkey(BLACK)
-        self.rect = self.image.get_rect
+        self.rect = self.image.get_rect()
         self.rect.centerx = self.plat.rect.centerx
         self.rect.bottom = self.plat.rect.top - 5
 
     def update(self):
-        self.rect.bottom = self.plat.rect.top -5
+        self.rect.bottom = self.plat.rect.top - 5
+        self.rect.centerx = self.plat.rect.centerx
         if not self.game.platforms.has(self.plat):
             self.kill()
