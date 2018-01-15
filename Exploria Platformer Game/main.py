@@ -118,7 +118,8 @@ class Game:
         self.screen.fill(BGCOLOR)
         self.all_sprites.draw(self.screen)
         self.screen.blit(self.player.image, self.player.rect)
-        self.draw_text('Health: '+str(self.player.health), 22, WHITE, WIDTH/2, 15)
+        health_color = WHITE if self.player.health > 50 else RED
+        self.draw_text('Health: '+str(self.player.health), 22, health_color, WIDTH/2, 15)
         pg.display.flip()
 
     def show_start_screen(self):
