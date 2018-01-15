@@ -13,13 +13,16 @@ PLAYER_MAX_HEALTH = 100
 FONT_NAME = 'arial'
 SPRITESHEET = 'spritesheet_jumper.png'
 
-#starting platforms
-PLATFORM_LIST = [(WIDTH/2-50, HEIGHT*3/4-50, 1000, 30),
-                 (0, HEIGHT*1/3+50, 800, 30),
+# Game properties
+BOOST_POWER = 10
+POW_SPAWN_PCT = 50
+
+# starting platforms
+PLATFORM_LIST = [(WIDTH/2-50, 350, 2000, 30),
                  (125, HEIGHT-700, 100, 30),
                  (175, 90, 1000, 30)]
 
-#define common colors
+# define common colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -28,3 +31,15 @@ BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
 LIGHTBLUE = (0, 155, 155)
 BGCOLOR = LIGHTBLUE
+
+
+# function to combine sprite rects
+def expand_parameters(starting_value, final_length):
+    """ takes initial platform parameters, returns list of multiple parameters in form (x, y, z)"""
+    ret = [starting_value]
+    for i in range(final_length):
+        x, y, w, h = starting_value
+        x += 5
+        ret.append((x, y, w, h))
+        starting_value = (x, y, w, h)
+    return ret
