@@ -14,10 +14,11 @@ class Player(pg.sprite.Sprite):
         self.walking = False
         self.direction = "right"
         self.jumping = False
+        self.money = 0
         self.current_frame = 0
         self.last_update = 0
         self.load_images()
-        self.image = self.game.spritesheet.get_image(692, 1458, 120, 207)
+        self.image = self.game.spritesheet.get_image(692, 1458, 120, 207, True)
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
         self.rect.center = (WIDTH / 2, HEIGHT / 2)
@@ -29,19 +30,19 @@ class Player(pg.sprite.Sprite):
         self.last_auto_healing = pg.time.get_ticks()
 
     def load_images(self):
-        self.standing_frames = [self.game.spritesheet.get_image(614, 1063, 120, 191),
-                         self.game.spritesheet.get_image(690, 406, 120, 201)]
+        self.standing_frames = [self.game.spritesheet.get_image(614, 1063, 120, 191, True),
+                         self.game.spritesheet.get_image(690, 406, 120, 201, True)]
         for frame in self.standing_frames:
             frame.set_colorkey(BLACK)
-        self.walk_frames_r = [self.game.spritesheet.get_image(678, 860, 120, 201),
-                              self.game.spritesheet.get_image(692, 1458, 120, 207)]
+        self.walk_frames_r = [self.game.spritesheet.get_image(678, 860, 120, 201, True),
+                              self.game.spritesheet.get_image(692, 1458, 120, 207, True)]
         for frame in self.walk_frames_r:
             frame.set_colorkey(BLACK)
-        self.walk_frames_l = [pg.transform.flip(self.game.spritesheet.get_image(678, 860, 120, 201), True, False),
-                              pg.transform.flip(self.game.spritesheet.get_image(692, 1458, 120, 207), True, False)]
+        self.walk_frames_l = [pg.transform.flip(self.game.spritesheet.get_image(678, 860, 120, 201, True), True, False),
+                              pg.transform.flip(self.game.spritesheet.get_image(692, 1458, 120, 207, True), True, False)]
         for frame in self.walk_frames_l:
             frame.set_colorkey(BLACK)
-        self.jump_frame = self.game.spritesheet.get_image(382, 763, 150, 181)
+        self.jump_frame = self.game.spritesheet.get_image(382, 763, 150, 181, True)
         self.jump_frame.set_colorkey(BLACK)
 
     def jump(self):
@@ -107,8 +108,21 @@ class Player(pg.sprite.Sprite):
         if now - self.last_auto_healing > 10000 and self.health < PLAYER_MAX_HEALTH:
             self.last_auto_healing = now
             self.health += 1
-            if self.health > 100:
-                self.health = 100
+        if self.health > 100:
+            self.health = 100
+
+        # hit power up
+        pow_hits = pg.sprite.spritecollide(self, self.game.powerups, True)
+        for pow in pow_hits:
+            if pow.type == 'damage':
+                self.vel.y = -BOOST_POWER
+                self.health -= 55
+            if pow.type == 'heal':
+                self.health += 10
+
+        if self.health < 1:
+            self.game.playing = False
+            self.game.show_go_screen()
 
     def animate(self):
         now = pg.time.get_ticks()
@@ -134,8 +148,8 @@ class Player(pg.sprite.Sprite):
             if now - self.last_update > 370:
                 self.last_update = now
                 bottom = self.rect.bottom
-                self.image = self.game.spritesheet.get_image(692, 1458, 120, 207) if self.direction == "right" \
-                    else pg.transform.flip(self.game.spritesheet.get_image(692, 1458, 120, 207), True, False)
+                self.image = self.game.spritesheet.get_image(692, 1458, 120, 207, True) if self.direction == "right" \
+                    else pg.transform.flip(self.game.spritesheet.get_image(692, 1458, 120, 207, True), True, False)
                 self.image.set_colorkey(BLACK)
                 self.rect = self.image.get_rect()
                 self.rect.bottom = bottom
@@ -160,14 +174,15 @@ class Platform(pg.sprite.Sprite):
         self.groups = game.all_sprites, game.platforms
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = self.game.spritesheet.get_image(0, 384, 380, 94)
+        self.image = self.game.spritesheet.get_image(0, 288, 380, 94, False)
         self.image = pg.transform.scale(self.image, (w, h*2))
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
         # spawn powerup
-        if randrange(100) < POW_SPAWN_PCT:
+        #if randrange(100) < POW_SPAWN_PCT:
+        for x in range(10):
             PowerUp(self.game, self)
 
 class Spritesheet:
@@ -175,11 +190,12 @@ class Spritesheet:
     def __init__(self, filename):
         self.spritesheet = pg.image.load(filename).convert()
 
-    def get_image(self, x, y, width, height):
+    def get_image(self, x, y, width, height, scale=True):
         # grab image out of spritesheet
         image = pg.Surface((width, height))
         image.blit(self.spritesheet, (0, 0), (x, y, width, height))
-        image = pg.transform.scale(image, (width//2, height//2))
+        if scale:
+            image = pg.transform.scale(image, (width//2, height//2))
         return image
 
 class PowerUp(pg.sprite.Sprite):
@@ -188,15 +204,16 @@ class PowerUp(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.plat = plat
-        self.type = random.choice(['boost'])
-        self.image = self.game.spritesheet.get_image(820, 1805, 71, 70)
+        self.type = random.choice(['damage', 'heal'])
+        self.image = self.game.spritesheet.get_image(820, 1805, 71, 70, True)
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
-        self.rect.centerx = self.plat.rect.centerx
+        self.random_number = randrange(0, self.plat.rect.width)
+        self.rect.centerx = self.plat.rect.left + self.random_number
         self.rect.bottom = self.plat.rect.top - 5
 
     def update(self):
         self.rect.bottom = self.plat.rect.top - 5
-        self.rect.centerx = self.plat.rect.centerx
+        self.rect.centerx = self.plat.rect.left + self.random_number
         if not self.game.platforms.has(self.plat):
             self.kill()
