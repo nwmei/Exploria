@@ -1,7 +1,7 @@
 #game options and settings
 TITLE = 'Exploria'
-WIDTH = 1300
-HEIGHT = 650
+WIDTH = 1350
+HEIGHT = 720
 FPS = 60
 
 #Player properties
@@ -12,15 +12,20 @@ PLAYER_JUMP = 14
 PLAYER_MAX_HEALTH = 100
 FONT_NAME = 'arial'
 SPRITESHEET = 'spritesheet_jumper.png'
+TILES_SPRITESHEET = 'tiles_spritesheet.png'
 
 # Game properties
 BOOST_POWER = 10
 POW_SPAWN_PCT = 50
 
 # starting platforms
-PLATFORM_LIST = [(WIDTH/2-50, 350, 2000, 30),
-                 (125, HEIGHT-700, 100, 30),
-                 (175, 90, 1000, 30)]
+PLATFORM_LIST = [(500, 300, 25, 30),
+                 (500, -20, 25, 30),
+                 (330, 155, 2, 0),
+                 (330, 455, 2, 0),
+                 (670+70*23, 155, 2, 0),
+                 (670+70*23, 455, 2, 0)]
+BASE_PLATFORM = (-600, 620, 50, 5)
 
 # define common colors
 BLACK = (0, 0, 0)
@@ -31,15 +36,3 @@ BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
 LIGHTBLUE = (0, 155, 155)
 BGCOLOR = LIGHTBLUE
-
-
-# function to combine sprite rects
-def expand_parameters(starting_value, final_length):
-    """ takes initial platform parameters, returns list of multiple parameters in form (x, y, z)"""
-    ret = [starting_value]
-    for i in range(final_length):
-        x, y, w, h = starting_value
-        x += 5
-        ret.append((x, y, w, h))
-        starting_value = (x, y, w, h)
-    return ret
