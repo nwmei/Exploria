@@ -25,6 +25,7 @@ class Game:
         self.dir = path.dirname(__file__)
         img_dir = path.join(self.dir, 'img')
         self.spritesheet = Spritesheet(path.join(img_dir, SPRITESHEET))
+        self.tiles_spritesheet = Spritesheet(path.join(img_dir, TILES_SPRITESHEET))
         self.snd_dir = path.join(self.dir, 'snd')
         self.jump_sound = pg.mixer.Sound(path.join(self.snd_dir, 'sound_3.wav'))
 
@@ -36,27 +37,45 @@ class Game:
         self.powerups = pg.sprite.Group()
         self.player = Player(self)
 
-        # create platforms, starting with base
-        self.base_platform = Platform(-3000, HEIGHT-40, 16350, 300, self)
+        # first initialize base platform
+        self.base_platform = Platform(-600, 620, self, False, False, False)
+        x, y, w, h = BASE_PLATFORM
+        right = x
+        for i in range(w):  # creating base platform
+            bottom = self.base_platform.rect.bottom
+            plat = self.create_platform(right, y, False, False, False)
+            for row in range(h):  # mud tiles to increasse height of platform
+                mud = self.create_platform(right, bottom, False, False, True)
+                bottom = mud.rect.bottom
+            right = plat.rect.right
         self.platform_rect_list.append(self.base_platform.rect)
         self.platform_distances_from_base.append(0)
 
         # other platforms
         for platform in PLATFORM_LIST:
             x, y, w, h = platform
-            plat = Platform(x, y, w, h, self)
-            # created a list of plat rects so that program can refer to them in the
-            # order that they were created. iterating through a sprite group does not
-            # always happen in the order that sprites were added to the group. The elements
-            # in the rect list point to the actual rects of the platforms (mutable).
-            self.platform_rect_list.append(plat.rect)
-            # platform distances list indices correspond to rect list.
-            self.platform_distances_from_base.append(self.base_platform.rect.y - plat.rect.y)
+            right = x
+            for col in range(w):
+                left_edge = True if col == 0 else False
+                right_edge = True if col == w-1 else False
+                plat = self.create_platform(right, y, left_edge, right_edge, False)
+                right = plat.rect.right
 
         pg.mixer.music.load(path.join(self.snd_dir, 'TownTheme.ogg'))
 
         self.run()
-    
+
+    def create_platform(self, x, y, left_edge, right_edge, mud):
+        plat = Platform(x, y, self, left_edge, right_edge, mud)
+        # created a list of plat rects so that program can refer to them in the
+        # order that they were created. iterating through a sprite group does not
+        # always happen in the order that sprites were added to the group. The elements
+        # in the rect list point to the actual rects of the platforms (mutable).
+        self.platform_rect_list.append(plat.rect)
+        # platform distances list indices correspond to rect list.
+        self.platform_distances_from_base.append(self.base_platform.rect.y - plat.rect.y)
+        return plat
+
     def run(self):
         """game loop"""
         pg.mixer.music.play(loops=-1)
@@ -71,6 +90,12 @@ class Game:
     def update(self):
         """game loop update"""
         self.all_sprites.update()
+
+        # hit left boundary
+        if self.base_platform.rect.x >= self.player.rect.left:
+            self.player.pos.x = self.base_platform.rect.left + 36
+            self.player.vel.x = 0
+            self.player.acc.x = 0
 
         # scroll map vertically while player moves
         if self.player.rect.top <= HEIGHT/6 or self.player.rect.top >= HEIGHT/2:
@@ -89,9 +114,9 @@ class Game:
             self.last_vertical_correction = now
             if abs(self.player.pos.y - HEIGHT/2) > 2:
                 if HEIGHT/2 - self.player.pos.y < 0:
-                    sign = -2
+                    sign = -3
                 else:
-                    sign = 2
+                    sign = 3
                 self.player.pos.y += sign
                 for platform in self.platforms:
                     platform.rect.y += sign
