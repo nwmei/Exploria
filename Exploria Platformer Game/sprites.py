@@ -55,7 +55,7 @@ class Player(pg.sprite.Sprite):
         platform_collision_indices = self.rect.collidelistall(self.game.platform_rect_list)
         floor_index = self.lower_platform_index(platform_collision_indices)
         self.pos.y -= 1
-        if self.game.platform_rect_list[floor_index] != self.game.base_platform.rect and floor_index != -1:
+        if self.game.platform_rect_list[floor_index].y != self.game.base_platform.rect.y and floor_index != -1:
             self.pos = (self.pos[0], self.game.platform_rect_list[floor_index].midbottom[1])
 
     def lower_platform_index(self, indices):
@@ -96,12 +96,12 @@ class Player(pg.sprite.Sprite):
         floor_index = self.lower_platform_index(platform_collision_indices)
         collision_point_list = self.check_collision(self.game.platform_rect_list[floor_index])
         # on top of platform
-        if self.pos.x < self.game.platform_rect_list[floor_index].right + 10 and \
-            self.pos.x > self.game.platform_rect_list[floor_index].left - 10:
-            if (collision_point_list[2] == 1 or collision_point_list[3] == 1 or collision_point_list[7] == 1) \
-                    and collision_point_list[5] != 1 and collision_point_list[4] != 1 and self.vel.y > 0:
-                self.pos.y = self.game.platform_rect_list[floor_index].top + 1
-                self.vel.y = 0
+        # if self.pos.x < self.game.platform_rect_list[floor_index].right + 0 and \
+        #     self.pos.x > self.game.platform_rect_list[floor_index].left - 0:
+        if (collision_point_list[2] == 1 or collision_point_list[3] == 1 or collision_point_list[7] == 1) \
+                and collision_point_list[5] != 1 and collision_point_list[4] != 1 and self.vel.y > 0:
+            self.pos.y = self.game.platform_rect_list[floor_index].top + 1
+            self.vel.y = 0
 
         # auto healing
         now = pg.time.get_ticks()
@@ -170,19 +170,26 @@ class Player(pg.sprite.Sprite):
 
 class Platform(pg.sprite.Sprite):
     """class for game platforms"""
-    def __init__(self, x, y, w, h, game):
+    def __init__(self, x, y, game, left_edge, right_edge, mud):
         self.groups = game.all_sprites, game.platforms
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = self.game.spritesheet.get_image(0, 288, 380, 94, False)
-        self.image = pg.transform.scale(self.image, (w, h*2))
+        if left_edge:
+            self.image = self.game.tiles_spritesheet.get_image(504, 648, 70, 70, False)
+        elif right_edge:
+            self.image = self.game.tiles_spritesheet.get_image(504, 504, 70, 70, False)
+        elif mud:
+            self.image = self.game.tiles_spritesheet.get_image(576, 864, 70, 70, False)
+        else:
+            self.image = self.game.tiles_spritesheet.get_image(504, 576, 70, 70, False)
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+
         # spawn powerup
         #if randrange(100) < POW_SPAWN_PCT:
-        for x in range(10):
+        for x in range(0):
             PowerUp(self.game, self)
 
 class Spritesheet:
