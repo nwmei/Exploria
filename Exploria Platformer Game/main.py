@@ -33,6 +33,8 @@ class Game:
         """start a new game"""
         self.load_data()
         self.all_sprites = pg.sprite.Group()
+        self.mobs = pg.sprite.Group()
+        self.mob_timer = 0
         self.platforms = pg.sprite.Group()
         self.powerups = pg.sprite.Group()
         self.player = Player(self)
@@ -60,6 +62,12 @@ class Game:
                 right_edge = True if col == w-1 else False
                 plat = self.create_platform(right, y, left_edge, right_edge, False)
                 right = plat.rect.right
+
+        # spawn mobs
+        now = pg.time.get_ticks()
+        if now - self.mob_timer > 500:
+            Mob(self)
+            self.mob_timer = now
 
         pg.mixer.music.load(path.join(self.snd_dir, 'TownTheme.ogg'))
 
