@@ -88,6 +88,8 @@ class Player(pg.sprite.Sprite):
         self.vel += self.acc
         if abs(self.vel.x) < 0.5:
             self.vel.x = 0
+        if self.vel.y > PLAYER_MAX_VEL:  # terminal velocity
+            self.vel.y = PLAYER_MAX_VEL
         self.pos += self.vel + 0.5 * self.acc
         self.rect.midbottom = self.pos
 
@@ -185,13 +187,17 @@ class Platform(pg.sprite.Sprite):
         self.groups = game.all_sprites, game.platforms
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
+        self.type = 'left_edge'  # initialize to something
         if left_edge:
             self.image = self.game.tiles_spritesheet.get_image(504, 648, 70, 70, False)
         elif right_edge:
+            self.type = 'right_edge'
             self.image = self.game.tiles_spritesheet.get_image(504, 504, 70, 70, False)
         elif mud:
+            self.type = 'mud'
             self.image = self.game.tiles_spritesheet.get_image(576, 864, 70, 70, False)
         else:
+            self.type = 'regular'
             self.image = self.game.tiles_spritesheet.get_image(504, 576, 70, 70, False)
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
@@ -250,7 +256,20 @@ class Mob(pg.sprite.Sprite):
         self.platform = plat
         self.rect.centerx = self.platform.rect.centerx
         self.rect.bottom = self.platform.rect.top - 10
+        self.walk_time = randrange(5000, 10000)
+        self.direction = random.choice([-1, 1])
+        self.start_time = 0
 
     def update(self):
+        now = pg.time.get_ticks()
+        if now - self.start_time > self.walk_time:
+            self.walk_time = randrange(5000, 10000)
+            self.direction = random.choice([-1, 1])
+            self.start_time = now
+        if self.platform.type == 'left_edge' or self.platform.type == 'right_edge':
+            if self.rect.left < self.platform.rect.left:
+                self.rect.left = self.platform.rect.left
+            elif self.rect.right > self.platform.rect.right:
+                self.rect.right = self.platform.rect.right
         self.rect.bottom = self.platform.rect.top - 10
-        self.rect.centerx = self.platform.rect.centerx
+        self.rect.centerx += self.direction
