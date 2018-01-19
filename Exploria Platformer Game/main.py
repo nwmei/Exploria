@@ -120,6 +120,8 @@ class Game:
         self.player.pos.x -= self.player.vel.x
         for platform in self.platforms:
             platform.rect.x -= int(self.player.vel.x)
+        for enemy in self.mobs:
+            enemy.rect.x -= int(self.player.vel.x)
 
         # scheduled correction of y coordinates of all sprites
         now = pg.time.get_ticks()
