@@ -17,6 +17,7 @@ class Player(pg.sprite.Sprite):
         self.money = 0
         self.current_frame = 0
         self.last_update = 0
+        self.last_damage = 0
         self.load_images()
         self.image = self.game.spritesheet.get_image(692, 1458, 120, 207, True)
         self.image.set_colorkey(BLACK)
@@ -96,8 +97,8 @@ class Player(pg.sprite.Sprite):
         floor_index = self.lower_platform_index(platform_collision_indices)
         collision_point_list = self.check_collision(self.game.platform_rect_list[floor_index])
         # on top of platform
-        # if self.pos.x < self.game.platform_rect_list[floor_index].right + 0 and \
-        #     self.pos.x > self.game.platform_rect_list[floor_index].left - 0:
+        # if self.pos.x < self.game.platform_rect_list[floor_index].right + 10 and \
+        #     self.pos.x > self.game.platform_rect_list[floor_index].left - 10:
         if (collision_point_list[2] == 1 or collision_point_list[3] == 1 or collision_point_list[7] == 1) \
                 and collision_point_list[5] != 1 and collision_point_list[4] != 1 and self.vel.y > 0:
             self.pos.y = self.game.platform_rect_list[floor_index].top + 1
@@ -119,6 +120,16 @@ class Player(pg.sprite.Sprite):
                 self.health -= 55
             if pow.type == 'heal':
                 self.health += 10
+
+        # hit enemy
+        player_enemy_hits = pg.sprite.spritecollide(self, self.game.mobs, False)
+        if player_enemy_hits:
+            now = pg.time.get_ticks()
+            if now - self.last_damage > 1000:
+                self.last_damage = now
+                self.health -= 5
+                self.vel.x *= -5
+                self.vel.y *= -1
 
         if self.health < 1:
             self.game.playing = False
@@ -226,7 +237,7 @@ class PowerUp(pg.sprite.Sprite):
             self.kill()
 
 class Mob(pg.sprite.Sprite):
-    def __init__(self, game):
+    def __init__(self, game, plat):
         self.groups = game.all_sprites, game.mobs
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
@@ -236,26 +247,10 @@ class Mob(pg.sprite.Sprite):
         self.image_down.set_colorkey(BLACK)
         self.image = self.image_up
         self.rect = self.image.get_rect()
-        self.rect.centerx = random.choice([-100, WIDTH + 100])
-        self.vx = randrange(1, 4)
-        if self.rect.centerx > WIDTH:
-            self.vx *= -1
-        self.rect.y = randrange(HEIGHT/2)
-        self.vy = 0
-        self.dy = 0.5
+        self.platform = plat
+        self.rect.centerx = self.platform.rect.centerx
+        self.rect.bottom = self.platform.rect.top - 10
 
     def update(self):
-        self.rect.x = self.vx
-        self.vy += self.dy
-        if self.vy > 3 or self.vy < -3:
-            self.dy *= -1
-        center = self.rect.center
-        if self.dy < 0:
-            self.image = self.image_up
-        else:
-            self.image = self.image_down
-        self.rect = self.image.get_rect()
-        self.rect.center = center
-        self.rect.y += self.vy
-        if self.rect.left > WIDTH + 100 or self.rect.right < -100:
-            self.kill()
+        self.rect.bottom = self.platform.rect.top - 10
+        self.rect.centerx = self.platform.rect.centerx
