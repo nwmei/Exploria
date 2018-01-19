@@ -19,6 +19,7 @@ class Game:
         self.last_vertical_correction = pg.time.get_ticks()
         self.platform_rect_list = []
         self.platform_distances_from_base = []
+        self.standable_platforms = []
         self.font_name = pg.font.match_font(FONT_NAME)
 
     def load_data(self):
@@ -46,6 +47,7 @@ class Game:
         for i in range(w):  # creating base platform
             bottom = self.base_platform.rect.bottom
             plat = self.create_platform(right, y, False, False, False)
+            self.standable_platforms.append(plat)
             for row in range(h):  # mud tiles to increasse height of platform
                 mud = self.create_platform(right, bottom, False, False, True)
                 bottom = mud.rect.bottom
@@ -62,12 +64,11 @@ class Game:
                 right_edge = True if col == w-1 else False
                 plat = self.create_platform(right, y, left_edge, right_edge, False)
                 right = plat.rect.right
+                self.standable_platforms.append(plat)
 
-        # spawn mobs
-        now = pg.time.get_ticks()
-        if now - self.mob_timer > 500:
-            Mob(self)
-            self.mob_timer = now
+        # create initial enemies
+        for x in range(10):
+            self.create_enemy()
 
         pg.mixer.music.load(path.join(self.snd_dir, 'TownTheme.ogg'))
 
@@ -83,6 +84,10 @@ class Game:
         # platform distances list indices correspond to rect list.
         self.platform_distances_from_base.append(self.base_platform.rect.y - plat.rect.y)
         return plat
+
+    def create_enemy(self):
+        plat = random.choice(self.standable_platforms)
+        Mob(self, plat)
 
     def run(self):
         """game loop"""
