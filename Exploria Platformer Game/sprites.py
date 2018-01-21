@@ -167,6 +167,8 @@ class Player(pg.sprite.Sprite):
                 self.rect = self.image.get_rect()
                 self.rect.bottom = bottom
 
+    def shoot(self):
+        Bullet(self, self.game)
 
     def check_collision(self, sprite_rect):
         """returns list containing 0s and 1s depending on where player is colliding with platform"""
@@ -187,7 +189,7 @@ class Bullet(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.player = player
-        self.image = pg.Surface((10, 2))
+        self.image = pg.Surface((20, 4))
         self.image.fill(GREEN)
         self.rect = self.image.get_rect()
         self.rect.bottom = self.player.rect.centery
@@ -272,6 +274,7 @@ class Mob(pg.sprite.Sprite):
         self.groups = game.all_sprites, game.mobs
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
+        self.health = 100
         self.image_up = self.game.spritesheet.get_image(566, 510, 122, 139)
         self.image_up.set_colorkey(BLACK)
         self.image_down = self.game.spritesheet.get_image(568, 1534, 122, 135)
@@ -286,6 +289,11 @@ class Mob(pg.sprite.Sprite):
         self.start_time = 0
 
     def update(self):
+        # check if killed
+        if self.health < 1:
+            self.kill()
+            self.game.create_enemy()
+
         now = pg.time.get_ticks()
         # change direction randomly left or right after a certain amount of time (also random)
         if now - self.start_time > self.walk_time:
