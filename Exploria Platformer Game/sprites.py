@@ -181,6 +181,31 @@ class Player(pg.sprite.Sprite):
         return self.collision
 
 
+class Bullet(pg.sprite.Sprite):
+    def __init__(self, player, game):
+        self.groups = game.all_sprites, game.bullets
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.player = player
+        self.image = pg.Surface((10, 2))
+        self.image.fill(GREEN)
+        self.rect = self.image.get_rect()
+        self.rect.bottom = self.player.rect.centery
+        self.distance_from_base = self.game.base_platform.rect.y - self.rect.y
+        if self.player.direction == 'left':
+            self.rect.right = self.player.rect.left
+            self.speed = -6
+        else:
+            self.rect.left = self.player.rect.right
+            self.speed = 6
+
+    def update(self):
+        self.rect.x += self.speed
+        self.rect.y = self.game.base_platform.rect.y - self.distance_from_base
+        if self.rect.right > WIDTH or self.rect.left < 0:
+            self.kill()
+
+
 class Platform(pg.sprite.Sprite):
     """class for game platforms"""
     def __init__(self, x, y, game, left_edge, right_edge, mud):
