@@ -38,6 +38,7 @@ class Game:
         self.mob_timer = 0
         self.platforms = pg.sprite.Group()
         self.powerups = pg.sprite.Group()
+        self.bullets = pg.sprite.Group()
         self.player = Player(self)
 
         # first initialize base platform
@@ -104,6 +105,11 @@ class Game:
         """game loop update"""
         self.all_sprites.update()
 
+        # bullet hits enemy
+        hits = pg.sprite.groupcollide(self.bullets, self.mobs, True, False)
+        for hit in hits:
+            hits[hit][0].health -= randrange(30, 55)  # decrease enemy health by this much
+
         # hit left boundary
         if self.base_platform.rect.x >= self.player.rect.left:
             self.player.pos.x = self.base_platform.rect.left + 36
@@ -115,6 +121,8 @@ class Game:
             self.player.pos.y -= self.player.vel.y
             for platform in self.platforms:
                 platform.rect.y -= self.player.vel.y
+            for bullet in self.bullets:
+                bullet.rect.y -= self.player.vel.y
 
         # scroll map horizontally while player moves
         self.player.pos.x -= self.player.vel.x
@@ -152,6 +160,8 @@ class Game:
                         self.player.jump()
                 if event.key == pg.K_DOWN:
                     self.player.under_jump()
+                if event.key == pg.K_LALT:
+                    self.player.shoot()
     
     def draw(self):
         """game loop draw"""
