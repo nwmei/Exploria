@@ -262,14 +262,25 @@ class Mob(pg.sprite.Sprite):
 
     def update(self):
         now = pg.time.get_ticks()
+        # change direction randomly left or right after a certain amount of time (also random)
         if now - self.start_time > self.walk_time:
             self.walk_time = randrange(5000, 10000)
             self.direction = random.choice([-1, 1])
             self.start_time = now
-        if self.platform.type == 'left_edge' or self.platform.type == 'right_edge':
-            if self.rect.left < self.platform.rect.left:
-                self.rect.left = self.platform.rect.left
-            elif self.rect.right > self.platform.rect.right:
-                self.rect.right = self.platform.rect.right
+
+        # check if collision below
+        self.rect.bottom += 15
+        hit = pg.sprite.spritecollideany(self, self.game.standable_platforms)
+        if hit:
+            if hit.type == 'left_edge':
+                if self.rect.left < hit.rect.left:
+                    self.direction = -1 if self.direction == 1 else 1
+            if hit.type == 'right_edge':
+                if self.rect.right > hit.rect.right:
+                    self.direction = -1 if self.direction == 1 else 1
+        self.rect.bottom -= 15
+        # end collision check
+
+        # maintain y position of enemy relative to platform
         self.rect.bottom = self.platform.rect.top - 10
         self.rect.centerx += self.direction
