@@ -90,6 +90,10 @@ class Game:
         plat = random.choice(self.standable_platforms)
         Mob(self, plat)
 
+    def create_dropping(self):
+        plat = random.choice(self.standable_platforms)
+        Dropping(self, plat)
+
     def run(self):
         """game loop"""
         pg.mixer.music.play(loops=-1)
@@ -126,10 +130,8 @@ class Game:
 
         # scroll map horizontally while player moves
         self.player.pos.x -= self.player.vel.x
-        for platform in self.platforms:
-            platform.rect.x -= int(self.player.vel.x)
-        for enemy in self.mobs:
-            enemy.rect.x -= int(self.player.vel.x)
+        for sprite in self.all_sprites:
+            sprite.rect.x -= int(self.player.vel.x)
 
         # scheduled correction of y coordinates of all sprites
         now = pg.time.get_ticks()
