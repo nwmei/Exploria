@@ -317,3 +317,9 @@ class Mob(pg.sprite.Sprite):
         # maintain y position of enemy relative to platform
         self.rect.bottom = self.platform.rect.top - 10
         self.rect.centerx += self.direction
+
+class Dropping(pg.sprite.Sprite):
+    def __init__(self, game, ):
+        self.groups = game.all_sprites, game.droppings
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
